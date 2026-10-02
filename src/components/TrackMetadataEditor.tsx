@@ -79,8 +79,8 @@ export function TrackCreditsEditor({
             onSelect={(person) => onChange({ mainArtistName: person.title, mainArtistId: person.id })}
             placeholder={identityName || 'Artist name'}
             hint={identityName
-              ? `Leave blank to use ${identityName}. Choose an existing CHC profile when available.`
-              : 'Search CHC artists or enter a new name.'}
+              ? `Leave blank to use ${identityName}. Choose an existing Coptic Vine profile when available.`
+              : 'Search Coptic Vine artists or enter a new name.'}
           />
 
           <View style={styles.group}>

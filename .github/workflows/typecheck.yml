@@ -1,4 +1,4 @@
-name: Validate CHC Artists
+name: Validate Coptic Vine Artists
 
 on:
   push:

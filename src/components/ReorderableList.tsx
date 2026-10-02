@@ -109,7 +109,7 @@ function ReorderableRow<Item>({
     }).start();
   }, [dragging, lifted, offset, translateY]);
 
-  // Same responder architecture as CHC's music queue: create the responder
+  // Same responder architecture as Coptic Vine's music queue: create the responder
   // once and call through a ref so moving state never rebuilds the gesture.
   const [responder] = useState(() => PanResponder.create({
     onStartShouldSetPanResponder: () => !disabledRef.current,

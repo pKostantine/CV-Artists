@@ -13,7 +13,7 @@ export default function Root({ children }: { children: ReactNode }) {
         />
         <ScrollViewStyleReset />
         <meta name="theme-color" content="#11161B" />
-        <meta name="apple-mobile-web-app-title" content="CHC Artists" />
+        <meta name="apple-mobile-web-app-title" content="Coptic Vine Artists" />
         <link rel="manifest" href="/manifest.webmanifest" />
         <style dangerouslySetInnerHTML={{ __html: 'html,body,#root{height:100%;max-height:100%;background:#11161B}body{margin:0;overflow:hidden;overscroll-behavior:none}' }} />
       </head>

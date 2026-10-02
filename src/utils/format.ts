@@ -19,14 +19,14 @@ export function submissionTypeLabel(value: SubmissionType): string {
 /** What the status means for the creator, in their terms. */
 export function statusDescription(status: PublicationStatus): string {
   switch (status) {
-    case 'pending_review': return 'Waiting for CHC review.';
-    case 'changes_requested': return 'CHC asked for changes before it can be approved.';
-    case 'approved': return 'Approved. CHC is preparing it for publication.';
+    case 'pending_review': return 'Waiting for Coptic Vine review.';
+    case 'changes_requested': return 'Coptic Vine asked for changes before it can be approved.';
+    case 'approved': return 'Approved. Coptic Vine is preparing it for publication.';
     case 'processing': return 'Approved. Media is being processed.';
-    case 'published': return 'Live on CHC.';
+    case 'published': return 'Live on Coptic Vine.';
     case 'rejected': return 'Not accepted for publication.';
     case 'archived': return 'Archived.';
-    default: return 'Not sent to CHC yet.';
+    default: return 'Not sent to Coptic Vine yet.';
   }
 }
 

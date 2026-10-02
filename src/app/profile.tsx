@@ -266,7 +266,7 @@ export default function ArtistProfileScreen() {
         profileImageUploadIntentId: intentId,
       });
       apply(next);
-      setNotice('Picture uploaded. CHC is processing it now.');
+      setNotice('Picture uploaded. Coptic Vine is processing it now.');
     } catch (cause) {
       setPendingPictureUri(null);
       setError(creatorService.describeError(cause));
@@ -310,7 +310,7 @@ export default function ArtistProfileScreen() {
     <Page>
       <PageHeader
         title="Artist profile"
-        subtitle="This is how listeners see you on CHC Music."
+        subtitle="This is how listeners see you on Coptic Vine Music."
         action={<Button kind="primary" label={busy ? 'Saving…' : 'Save profile'} busy={busy} onPress={() => void save()} />}
       />
 
@@ -350,7 +350,7 @@ export default function ArtistProfileScreen() {
           label="Artist name"
           value={displayName}
           onChangeText={setDisplayName}
-          hint="Renaming your artist renames your workspace too — an account is one artist on CHC."
+          hint="Renaming your artist renames your workspace too — an account is one artist on Coptic Vine."
         />
         <Field label="Biography" value={biography} onChangeText={setBiography} multiline placeholder="Tell listeners who you are." />
         <View style={styles.statusRow}>

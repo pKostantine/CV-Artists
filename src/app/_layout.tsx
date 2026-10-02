@@ -77,7 +77,7 @@ export default function RootLayout() {
     // Native OAuth deep link: that route finishes the exchange itself.
     content = <AppStack />;
   } else if (!ready) {
-    content = <Loading label="Opening CHC Artists…" />;
+    content = <Loading label="Opening Coptic Vine Artists…" />;
   } else if (!session) {
     content = <SignInScreen initialError={authError} />;
   } else {

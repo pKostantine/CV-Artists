@@ -215,6 +215,6 @@ export interface CreatorDraft {
   releaseTimingMode: ReleaseTimingMode;
   /** Used only when releaseTimingMode is scheduled; must be at least 48 hours out. */
   scheduledReleaseAt: string;
-  /** When it came out elsewhere, if it did. Wins over the CHC date on display. */
+  /** When it came out elsewhere, if it did. Wins over the Coptic Vine date on display. */
   originalReleaseDate: string;
 }

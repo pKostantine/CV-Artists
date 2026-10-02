@@ -19,7 +19,7 @@ test('Web file selectors use directly tappable HTML inputs, not scripted clicks'
   }
 });
 
-test('The main CHC Artists upload entry points use the iPhone-safe picker', () => {
+test('The main Coptic Vine Artists upload entry points use the iPhone-safe picker', () => {
   const form = read('src/app/submission/new.tsx');
   const release = read('src/app/release/[id].tsx');
   const profile = read('src/app/profile.tsx');
