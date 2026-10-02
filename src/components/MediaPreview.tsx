@@ -17,7 +17,7 @@ function clock(seconds: number): string {
  * previewed. One of these is mounted at a time, so there is one audio player
  * rather than one per row.
  *
- * Video previews are web-only: the deployed CHC Artists is the website, and
+ * Video previews are web-only: the deployed Coptic Vine Artists is the website, and
  * showing video anywhere else would mean pulling in a native video
  * dependency this app does not otherwise need.
  */
@@ -58,7 +58,7 @@ export function MediaPreview({ file, onClose }: { file: UploadCandidate; onClose
           style: { width: '100%', maxHeight: 360, borderRadius: RADII.sm, backgroundColor: COLORS.black },
         })
       ) : (
-        <Text style={styles.muted}>Video preview is available on the CHC Artists website.</Text>
+        <Text style={styles.muted}>Video preview is available on the Coptic Vine Artists website.</Text>
       )}
     </View>
   );

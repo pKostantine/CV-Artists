@@ -29,7 +29,7 @@ function ReleaseRow({ release }: { release: CreatorReleaseSummary }) {
         {artworkUrl ? (
           <Image source={{ uri: artworkUrl }} style={styles.coverImage} resizeMode="cover" />
         ) : (
-          <Text style={styles.coverFallback}>CHC</Text>
+          <Text style={styles.coverFallback}>CV</Text>
         )}
       </View>
 
@@ -103,7 +103,7 @@ export default function ReleasesScreen() {
 
       <Card
         title={`Ready for release (${ready.length})`}
-        description="CHC has approved these releases and every required media file is processed. You can still edit them here."
+        description="Coptic Vine has approved these releases and every required media file is processed. You can still edit them here."
       >
         {ready.length ? (
           <View style={styles.list}>
@@ -116,14 +116,14 @@ export default function ReleasesScreen() {
 
       <Card
         title={`Released (${released.length})`}
-        description="Music already published to CHC. Open any release to change its details, artwork, tracks, credits, or dates."
+        description="Music already published to Coptic Vine. Open any release to change its details, artwork, tracks, credits, or dates."
       >
         {released.length ? (
           <View style={styles.list}>
             {released.map((release) => <ReleaseRow key={release.id} release={release} />)}
           </View>
         ) : (
-          <Text style={uiStyles.muted}>You have not released any music on CHC yet.</Text>
+          <Text style={uiStyles.muted}>You have not released any music on Coptic Vine yet.</Text>
         )}
       </Card>
     </Page>

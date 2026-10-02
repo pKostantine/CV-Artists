@@ -43,7 +43,7 @@ export default function SubmissionDetail() {
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [notice, setNotice] = useState(submitted ? 'Submitted. Your submission is now in CHC review.' : '');
+  const [notice, setNotice] = useState(submitted ? 'Submitted. Your submission is now in Coptic Vine review.' : '');
 
   const loadItems = useCallback(async () => {
     if (!id) return;
@@ -106,7 +106,7 @@ export default function SubmissionDetail() {
         order += 1;
       }
       await creatorService.submit(submission.id);
-      setNotice('Sent back for review. CHC has your updated submission.');
+      setNotice('Sent back for review. Coptic Vine has your updated submission.');
       await Promise.all([refresh(), loadItems()]);
     } catch (e) {
       setError(creatorService.describeError(e));

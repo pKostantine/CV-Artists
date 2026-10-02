@@ -1,20 +1,20 @@
-# CHC Artists
+# Coptic Vine Artists
 
-**CHC Artists** is the artist and creator portal for the **Coptic Hymns Centre (CHC)** platform.
+**Coptic Vine Artists** is the artist and creator portal for the **Coptic Vine** platform.
 
-It is designed for cantors, choirs, hymn groups, musicians, and other approved creators who publish audio through CHC. The app gives artists a dedicated place to manage their presence on the platform, submit releases, monitor their content, and eventually manage analytics and monetization.
+It is designed for cantors, choirs, hymn groups, musicians, and other approved creators who publish audio through Coptic Vine. The app gives artists a dedicated place to manage their presence on the platform, submit releases, monitor their content, and eventually manage analytics and monetization.
 
-The concept is similar to platforms such as **Spotify for Artists** and **Apple Music for Artists**, but built specifically for the CHC ecosystem and the needs of Coptic Orthodox audio content.
+The concept is similar to platforms such as **Spotify for Artists** and **Apple Music for Artists**, but built specifically for the Coptic Vine ecosystem and the needs of Coptic Orthodox audio content.
 
 ---
 
 ## About the App
 
-CHC Artists is separate from the main CHC listener experience.
+Coptic Vine Artists is separate from the main Coptic Vine listener experience.
 
-The main **CHC app** is where users discover and listen to hymns, songs, liturgical recordings, albums, playlists, synchronized lyrics, and learning content.
+The main **Coptic Vine app** is where users discover and listen to hymns, songs, liturgical recordings, albums, playlists, synchronized lyrics, and learning content.
 
-**CHC Artists** is the creator-management side of that ecosystem. It currently gives approved creators a place to:
+**Coptic Vine Artists** is the creator-management side of that ecosystem. It currently gives approved creators a place to:
 
 - manage an artist workspace and profile
 - create music releases, learning albums, and lesson sets
@@ -24,20 +24,20 @@ The main **CHC app** is where users discover and listen to hymns, songs, liturgi
 - assign per-track credits and contributor roles
 - choose ASAP or scheduled release timing
 - monitor automatic media processing
-- submit work for CHC review
+- submit work for Coptic Vine review
 - manage released music separately from active submissions
 - edit published release metadata, artwork, tracks, credits, and timing
 - permanently remove releases or tracks when permitted
 - create and publish synchronized multilingual lyrics
 - use the creator portal across desktop, mobile, tablet, and installed web-app layouts
 
-The goal is to provide a professional creator workflow while keeping all published content integrated with the wider CHC platform.
+The goal is to provide a professional creator workflow while keeping all published content integrated with the wider Coptic Vine platform.
 
 ---
 
 ## Who It Is For
 
-CHC Artists is intended for creators who contribute audio to Coptic Hymns Centre, including:
+Coptic Vine Artists is intended for creators who contribute audio to Coptic Vine, including:
 
 - Cantors
 - Choirs
@@ -48,7 +48,7 @@ CHC Artists is intended for creators who contribute audio to Coptic Hymns Centre
 - Churches and ministries
 - Other approved audio publishers
 
-Not every CHC user needs a CHC Artists account. The app is specifically for people or organizations that publish and manage content.
+Not every Coptic Vine user needs a Coptic Vine Artists account. The app is specifically for people or organizations that publish and manage content.
 
 ---
 
@@ -62,7 +62,7 @@ A creator can work inside the artist workspace or workspaces connected to their 
 
 ### Artist Profiles
 
-Each artist has an editable CHC profile that can include:
+Each artist has an editable Coptic Vine profile that can include:
 
 - artist name
 - profile image
@@ -72,7 +72,7 @@ Each artist has an editable CHC profile that can include:
 - published releases
 - pinned or featured profile content
 
-Profile changes are designed to flow through to the artist page shown in the main CHC app.
+Profile changes are designed to flow through to the artist page shown in the main Coptic Vine app.
 
 ### Release and Learning Submissions
 
@@ -84,11 +84,11 @@ Creators can prepare:
 
 Music submissions support multiple audio files, real drag-and-drop on web, real track reordering, artwork uploads, localized release titles, localized per-track titles, recording/music classifications, and detailed credits.
 
-CHC automatically determines whether a music release is a Single, EP, or Album from its track count.
+Coptic Vine automatically determines whether a music release is a Single, EP, or Album from its track count.
 
 Large masters use multipart upload support, and media processing begins automatically after files are uploaded rather than waiting for admin approval. Long uploads obtain a fresh Supabase token for each chunk and retry an individual request if its JWT expires; a token refresh does not restart an entire video.
 
-**Every lesson video is automatically standardized after upload.** The CHC media processor converts it to a fast-start H.264 MP4 (quality-based CRF 20, maximum 1080p without upscaling, 192 kbps AAC audio). It also generates a separate audio-only M4A for video lessons. There is no user-facing compression toggle; the published file is the standardized delivery version.
+**Every lesson video is automatically standardized after upload.** The Coptic Vine media processor converts it to a fast-start H.264 MP4 (quality-based CRF 20, maximum 1080p without upscaling, 192 kbps AAC audio). It also generates a separate audio-only M4A for video lessons. There is no user-facing compression toggle; the published file is the standardized delivery version.
 
 **Upload-speed limitation:** This FFmpeg normalization currently runs after the original reaches R2. It reduces delivery size and improves playback compatibility but cannot shorten the transfer of the original file. Reliable pre-upload hardware encoding across iOS Files, Android, and Safari web requires platform-specific work; it is not implemented here, and a two-minute upload cannot be guaranteed independently of file size and upstream speed.
 
@@ -103,7 +103,7 @@ The native apps use platform date/time pickers, while web uses the corresponding
 
 ### Submission Review
 
-Submissions move through the CHC review workflow after their required media is ready.
+Submissions move through the Coptic Vine review workflow after their required media is ready.
 
 Creators can see upload and processing state, review status, requested changes, and relevant processing failures. Normal media processing happens before review; admin processing controls are intended mainly for exceptions and recovery.
 
@@ -122,7 +122,7 @@ Creators can manage supported release details including:
 - track deletion
 - release deletion
 
-Artwork replacement is versioned so the newest approved artwork becomes the current image across CHC.
+Artwork replacement is versioned so the newest approved artwork becomes the current image across Coptic Vine.
 
 ### Lyrics Studio
 
@@ -146,7 +146,7 @@ The studio supports:
 - draft restoration with all languages, timestamps, directions, and optional text preserved
 - publishing one or more lyric languages
 
-Coptic lyric fields use the CHC Coptic font while Arabic retains right-to-left handling.
+Coptic lyric fields use the Coptic Vine Coptic font while Arabic retains right-to-left handling.
 
 ### Responsive Creator UI
 
@@ -154,13 +154,13 @@ Desktop uses a sidebar layout. Phones, tablets, and touch-first installed web ap
 
 ### Notifications
 
-CHC Artists includes the shared CHC notification registration infrastructure so creator-facing notifications can be delivered through the same notification platform as the main CHC app.
+Coptic Vine Artists includes the shared Coptic Vine notification registration infrastructure so creator-facing notifications can be delivered through the same notification platform as the main Coptic Vine app.
 
 ---
 
 ## App Sections and URLs
 
-CHC Artists uses Expo Router and currently has four top-level creator sections:
+Coptic Vine Artists uses Expo Router and currently has four top-level creator sections:
 
 | URL | What it is |
 | --- | --- |
@@ -185,7 +185,7 @@ npm run typecheck
 npm run deploy     # expo export -p web, then wrangler deploy
 ```
 
-The app talks to Supabase only through public RPCs; the `creator`, `media`, `music`, and `learning` schemas are not exposed through the Data API. The creator RPCs (`get_creator_workspaces`, `get_creator_dashboard`, `create_creator_artist`, `create_creator_submission`, and friends) live in the main CHC repository under `supabase/migrations/20260917160000_add_chc_artists_creator_rpcs.sql`.
+The app talks to Supabase only through public RPCs; the `creator`, `media`, `music`, and `learning` schemas are not exposed through the Data API. The creator RPCs (`get_creator_workspaces`, `get_creator_dashboard`, `create_creator_artist`, `create_creator_submission`, and friends) live in the main Coptic Vine repository under `supabase/migrations/20260917160000_add_chc_artists_creator_rpcs.sql`.
 
 ### Google sign-in setup
 
@@ -194,29 +194,29 @@ The app talks to Supabase only through public RPCs; the `creator`, `media`, `mus
 1. **Google Cloud Console** — create an OAuth client of type *Web application*. Add `https://wtuujmeinzqfikvuofmh.supabase.co/auth/v1/callback` as an authorized redirect URI.
 2. **Supabase Dashboard → Authentication → Sign In / Providers → Google** — enable it and paste the client ID and secret.
 3. **Supabase Dashboard → Authentication → URL Configuration → Redirect URLs** — allow every place the app runs:
-   - `https://chc-artists.hrmpdd8d6c.workers.dev/**` (and any custom domain)
+   - `https://cv-artists.hrmpdd8d6c.workers.dev/**` (and any custom domain)
    - `http://localhost:8081/**` for local web development
    - `chcartists://**` for the iOS and Android apps
 
 Until the provider is enabled, the button explains that Google sign-in is not switched on instead of sending the creator to an error page.
 
-## Relationship to CHC
+## Relationship to Coptic Vine
 
-CHC Artists is part of the larger **Coptic Hymns Centre** application ecosystem.
+Coptic Vine Artists is part of the larger **Coptic Vine** application ecosystem.
 
 The apps should feel related without being identical.
 
-The main CHC app is focused on **discovering, reading, listening, and worship resources**.
+The main Coptic Vine app is focused on **discovering, reading, listening, and worship resources**.
 
-CHC Artists is focused on **publishing, managing, and understanding audio content**.
+Coptic Vine Artists is focused on **publishing, managing, and understanding audio content**.
 
-The visual language, navigation patterns, typography, spacing, and general design philosophy should make CHC Artists recognizable as part of the same family while still giving it the structure expected from a professional creator dashboard.
+The visual language, navigation patterns, typography, spacing, and general design philosophy should make Coptic Vine Artists recognizable as part of the same family while still giving it the structure expected from a professional creator dashboard.
 
 ---
 
 ## Platform Architecture
 
-CHC Artists is built around the same broader infrastructure used by the CHC ecosystem.
+Coptic Vine Artists is built around the same broader infrastructure used by the Coptic Vine ecosystem.
 
 ### Frontend
 
@@ -245,7 +245,7 @@ Platform-specific improvements can be introduced where necessary while keeping t
 
 ### Cloudflare
 
-**Cloudflare** is used as part of the media and infrastructure layer for CHC.
+**Cloudflare** is used as part of the media and infrastructure layer for Coptic Vine.
 
 Its role can include services related to:
 
@@ -257,7 +257,7 @@ Its role can include services related to:
 - Processing
 - Edge services
 
-This keeps large media files separate from the application's primary relational database while allowing CHC to deliver content efficiently.
+This keeps large media files separate from the application's primary relational database while allowing Coptic Vine to deliver content efficiently.
 
 ---
 
@@ -265,14 +265,14 @@ This keeps large media files separate from the application's primary relational 
 
 A typical music-release workflow is:
 
-1. **Sign in to CHC Artists**
+1. **Sign in to Coptic Vine Artists**
 2. **Choose the creator workspace**
 3. **Start a new music release**
 4. **Enter localized release metadata and release timing**
 5. **Add artwork and one or more audio files**
 6. **Reorder tracks and enter each track's localized titles and credits**
 7. **Wait for automatic upload processing to complete**
-8. **Submit the release for CHC review**
+8. **Submit the release for Coptic Vine review**
 9. **Respond to requested changes if necessary**
 10. **After approval, publish immediately for ASAP releases or automatically at the scheduled date/time**
 11. **Manage the released item from the Releases section**
@@ -284,11 +284,11 @@ Learning albums and lesson sets use the same creator foundation with learning-sp
 
 ## Design Goals
 
-CHC Artists is being developed around several core principles.
+Coptic Vine Artists is being developed around several core principles.
 
 ### Simple
 
-Publishing a track should not require understanding CHC's internal database structure.
+Publishing a track should not require understanding Coptic Vine's internal database structure.
 
 The artist should only need to provide the information necessary for the release.
 
@@ -300,13 +300,13 @@ Upload progress, release status, artwork, metadata, and analytics should all be 
 
 ### Integrated
 
-Artists should not have to manage separate disconnected systems for CHC.
+Artists should not have to manage separate disconnected systems for Coptic Vine.
 
 Their account, profile, releases, media, analytics, and future monetization tools should all be accessible through the same application.
 
-### Consistent With CHC
+### Consistent With Coptic Vine
 
-CHC Artists should visually belong to the CHC family while still having its own identity and workflow.
+Coptic Vine Artists should visually belong to the Coptic Vine family while still having its own identity and workflow.
 
 ### Built for Growth
 
@@ -334,8 +334,8 @@ The current creator platform includes:
 - multilingual synchronized Lyrics Studio
 - complete lyric draft preservation
 - responsive desktop/mobile/tablet/PWA navigation
-- CHC Artists branding and installable web-app assets
-- shared CHC notification infrastructure
+- Coptic Vine Artists branding and installable web-app assets
+- shared Coptic Vine notification infrastructure
 
 The app remains under active development, but the core creator publishing workflow is implemented end to end.
 
@@ -363,20 +363,20 @@ These are longer-term platform directions rather than descriptions of the curren
 
 ---
 
-## CHC Ecosystem
+## Coptic Vine Ecosystem
 
-CHC Artists is one part of the broader Coptic Hymns Centre project.
+Coptic Vine Artists is one part of the broader Coptic Vine project.
 
-The long-term goal of CHC is to provide a unified digital platform for Coptic Orthodox resources while giving the people who create, preserve, record, and publish those resources the tools they need to manage their work properly.
+The long-term goal of Coptic Vine is to provide a unified digital platform for Coptic Orthodox resources while giving the people who create, preserve, record, and publish those resources the tools they need to manage their work properly.
 
-**CHC Artists provides the creator side of that platform.**
+**Coptic Vine Artists provides the creator side of that platform.**
 
 ---
 
 ## Status
 
-CHC Artists is under active development, with the core creator workflow already implemented across web and Expo-based native targets.
+Coptic Vine Artists is under active development, with the core creator workflow already implemented across web and Expo-based native targets.
 
-The current app supports creator workspaces, profile management, multi-track submissions, automatic processing, review workflows, ASAP and scheduled releases, released-content editing, synchronized multilingual lyrics, responsive mobile/tablet navigation, and shared CHC notification infrastructure.
+The current app supports creator workspaces, profile management, multi-track submissions, automatic processing, review workflows, ASAP and scheduled releases, released-content editing, synchronized multilingual lyrics, responsive mobile/tablet navigation, and shared Coptic Vine notification infrastructure.
 
-Additional analytics, monetization, rights-management, and creator-growth tools can be layered onto this foundation as the CHC audio platform expands.
+Additional analytics, monetization, rights-management, and creator-growth tools can be layered onto this foundation as the Coptic Vine audio platform expands.

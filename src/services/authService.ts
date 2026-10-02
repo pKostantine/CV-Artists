@@ -79,9 +79,9 @@ export async function signInWithGoogle(): Promise<void> {
 export function describeAuthError(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error);
   if (/provider is not enabled|Unsupported provider/i.test(message)) {
-    return 'Google sign-in is not switched on for CHC Artists yet. Use your email and password for now.';
+    return 'Google sign-in is not switched on for Coptic Vine Artists yet. Use your email and password for now.';
   }
-  if (/Invalid login credentials/i.test(message)) return 'That email and password do not match a CHC Artists account.';
+  if (/Invalid login credentials/i.test(message)) return 'That email and password do not match a Coptic Vine Artists account.';
   if (/Email not confirmed/i.test(message)) return 'Confirm your email address first. Check your inbox for the link.';
   return message;
 }

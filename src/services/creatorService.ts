@@ -22,7 +22,7 @@ import type {
   UploadCandidate,
 } from '@/types/creator';
 
-const UPLOAD_BASE = process.env.EXPO_PUBLIC_CHC_UPLOAD_URL || 'https://chc-upload-authorizer.hrmpdd8d6c.workers.dev';
+const UPLOAD_BASE = process.env.EXPO_PUBLIC_UPLOAD_URL || 'https://cv-upload-authorizer.hrmpdd8d6c.workers.dev';
 
 function nullIfBlank(value: string | null | undefined): string | null {
   return value && value.trim() ? value.trim() : null;
@@ -74,7 +74,7 @@ function describeError(error: unknown): string {
     return 'One of these files is already part of another submission. Remove it and upload it again.';
   }
   if (/Failed to fetch|Network request failed/i.test(raw)) {
-    return 'Could not reach CHC. Check your connection and try again.';
+    return 'Could not reach Coptic Vine. Check your connection and try again.';
   }
   return raw;
 }
@@ -175,7 +175,7 @@ async function uploadMultipart(
   });
   if (!create.ok) {
     if (create.status === 404 || create.status === 405) {
-      throw Object.assign(new Error('CHC multipart upload service is not available yet.'), { code: 'multipart_unavailable' });
+      throw Object.assign(new Error('Coptic Vine multipart upload service is not available yet.'), { code: 'multipart_unavailable' });
     }
     throw await responseFailure(create, 'Could not start multipart upload');
   }
@@ -218,7 +218,7 @@ async function uploadMultipart(
         );
         const body = JSON.parse(responseText || '{}') as MultipartPart;
         if (!body.etag || body.partNumber !== partNumber) {
-          throw new Error(`CHC returned an invalid response for part ${partNumber}.`);
+          throw new Error(`Coptic Vine returned an invalid response for part ${partNumber}.`);
         }
         loadedByPart[index] = chunk.size;
         completedParts[index] = body;

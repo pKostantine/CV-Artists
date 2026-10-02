@@ -51,7 +51,7 @@ export default function SubmissionsDashboardScreen() {
 
       {needsAction.length > 0 && (
         <Banner tone="warning">
-          {needsAction.length === 1 ? '1 submission needs' : `${needsAction.length} submissions need`} changes before CHC can approve it.
+          {needsAction.length === 1 ? '1 submission needs' : `${needsAction.length} submissions need`} changes before Coptic Vine can approve it.
         </Banner>
       )}
 

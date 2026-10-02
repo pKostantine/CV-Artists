@@ -31,5 +31,5 @@ test('all three submissions continue using a single unified profile search', () 
   assert.match(editor, /<ContributorSearchField[\s\S]*?kind="artist"/);
   assert.doesNotMatch(form, /kind="cantor"/);
   assert.doesNotMatch(form, /dashboard\.cantors\.find/);
-  assert.match(form, /Enter an artist name or choose an existing CHC artist profile/);
+  assert.match(form, /Enter an artist name or choose an existing Coptic Vine artist profile/);
 });

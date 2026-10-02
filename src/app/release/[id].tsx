@@ -242,7 +242,7 @@ export default function EditRelease() {
     }
     if (!(await confirmAction(
       'Delete this track permanently?',
-      `"${track.title}" will be removed from this release and deleted from CHC. This cannot be undone.`,
+      `"${track.title}" will be removed from this release and deleted from Coptic Vine. This cannot be undone.`,
       'Delete track',
     ))) return;
 
@@ -270,7 +270,7 @@ export default function EditRelease() {
     if (!releaseId || !release) return;
     if (!(await confirmAction(
       'Delete this release permanently?',
-      `"${release.title}" and its tracks will be removed from the CHC music catalog. This cannot be undone.`,
+      `"${release.title}" and its tracks will be removed from the Coptic Vine music catalog. This cannot be undone.`,
       'Delete release',
     ))) return;
 
@@ -348,7 +348,7 @@ export default function EditRelease() {
       });
       apply(next);
       void refresh();
-      setNotice('Saved. Your changes are back with CHC for review.');
+      setNotice('Saved. Your changes are back with Coptic Vine for review.');
     } catch (cause) {
       setError(creatorService.describeError(cause));
     } finally {
@@ -399,7 +399,7 @@ export default function EditRelease() {
       {!!error && <Banner tone="error">{error}</Banner>}
 
       <Banner tone="info">
-        Editing a release sends the new version back to CHC for review. Anything already published stays live until the edit is approved.
+        Editing a release sends the new version back to Coptic Vine for review. Anything already published stays live until the edit is approved.
       </Banner>
 
       <Card
@@ -469,17 +469,17 @@ export default function EditRelease() {
             onChange={(value) => setReleaseTimingMode(value as 'asap' | 'scheduled')}
           />
           <Text style={uiStyles.muted}>
-            As soon as possible goes live immediately when CHC approves this edit. Scheduled releases publish automatically at the selected time.
+            As soon as possible goes live immediately when Coptic Vine approves this edit. Scheduled releases publish automatically at the selected time.
           </Text>
         </View>
 
         {releaseTimingMode === 'scheduled' && (
           <ReleaseDateTimeField
-            label="Goes live on CHC"
+            label="Goes live on Coptic Vine"
             value={scheduledAt}
             onChange={setScheduledAt}
             minimumDate={minimumReleaseDate}
-            hint="Changing this needs at least 48 hours' notice. After CHC approves it, publishing at that time is automatic. If you require a release date that is closer than 48 hours, please email x@x.x."
+            hint="Changing this needs at least 48 hours' notice. After Coptic Vine approves it, publishing at that time is automatic. If you require a release date that is closer than 48 hours, please email x@x.x."
           />
         )}
         <ReleaseDateTimeField
@@ -488,7 +488,7 @@ export default function EditRelease() {
           onChange={setOriginalDate}
           mode="date"
           optional
-          hint="The date listeners see if this came out elsewhere first. Clear it to fall back to the CHC date."
+          hint="The date listeners see if this came out elsewhere first. Clear it to fall back to the Coptic Vine date."
         />
       </Card>
 
@@ -585,7 +585,7 @@ export default function EditRelease() {
 
       <Card
         title="Danger zone"
-        description="Deleting a release permanently removes it from the CHC music catalog. Submission history is retained for audit purposes."
+        description="Deleting a release permanently removes it from the Coptic Vine music catalog. Submission history is retained for audit purposes."
       >
         <View style={uiStyles.actions}>
           <Button

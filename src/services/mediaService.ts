@@ -1,9 +1,9 @@
 import type { LyricEditorTrack } from '@/types/lyrics';
 
-const DEFAULT_MEDIA_BASE_URL = 'https://chc-media-resolver.hrmpdd8d6c.workers.dev';
+const DEFAULT_MEDIA_BASE_URL = 'https://cv-media-resolver.hrmpdd8d6c.workers.dev';
 
 function getBaseUrl(): string {
-  return (process.env.EXPO_PUBLIC_CHC_MEDIA_BASE_URL || DEFAULT_MEDIA_BASE_URL).replace(/\/+$/, '');
+  return (process.env.EXPO_PUBLIC_MEDIA_BASE_URL || DEFAULT_MEDIA_BASE_URL).replace(/\/+$/, '');
 }
 
 /**

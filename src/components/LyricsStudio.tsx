@@ -482,7 +482,7 @@ export function LyricsStudio() {
       setDirty(false);
       setMessage({
         tone: 'success',
-        text: `Published ${localesToPublish.map(localeLabel).join(', ')} lyrics to CHC.`,
+        text: `Published ${localesToPublish.map(localeLabel).join(', ')} lyrics to Coptic Vine.`,
       });
     } catch (error) {
       setMessage({ tone: 'error', text: errorText(error, 'Could not publish the lyrics.') });
@@ -513,7 +513,7 @@ export function LyricsStudio() {
       if (rows.length && imported.length !== rows.length) {
         if (!(await confirmAction(
           'Change the shared lyric row count?',
-          `${localeLabel(locale)} has ${imported.length} imported rows while the shared timeline has ${rows.length}. CHC will resize the shared timeline and keep other languages aligned with blank rows where needed. Existing timestamps are cleared because the row structure changed.`,
+          `${localeLabel(locale)} has ${imported.length} imported rows while the shared timeline has ${rows.length}. Coptic Vine will resize the shared timeline and keep other languages aligned with blank rows where needed. Existing timestamps are cleared because the row structure changed.`,
           'Resize rows',
         ))) return;
 
@@ -601,7 +601,7 @@ export function LyricsStudio() {
     if (rows.length && rows.length !== lineCount) {
       if (!(await confirmAction(
         'Replace the synced line structure?',
-        `The shared timeline has ${rows.length} rows and the pasted lyrics need ${lineCount}. CHC will resize the shared timeline, keep untouched language text where the same row still exists, and fill missing language rows with blanks. Existing timestamps are cleared because the row structure changed.`,
+        `The shared timeline has ${rows.length} rows and the pasted lyrics need ${lineCount}. Coptic Vine will resize the shared timeline, keep untouched language text where the same row still exists, and fill missing language rows with blanks. Existing timestamps are cleared because the row structure changed.`,
         'Replace rows',
       ))) return;
 
@@ -703,7 +703,7 @@ export function LyricsStudio() {
                 <Text style={styles.trackTitle}>{track.title}</Text>
                 <Text style={styles.muted}>
                   {track.targetType === 'music_track' ? 'Music' : track.targetType === 'learning_album_recording' ? 'Learning album' : 'Lesson set'}
-                  {' · '}{track.subtitle ?? 'CHC'}{' · '}
+                  {' · '}{track.subtitle ?? 'Coptic Vine'}{' · '}
                   {track.publicationStatus}
                   {track.durationMs ? ` · ${(track.durationMs / 1_000).toFixed(1)}s` : ''}
                 </Text>

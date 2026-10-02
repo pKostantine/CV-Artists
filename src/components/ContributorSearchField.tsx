@@ -19,7 +19,7 @@ interface Props {
   onSelect: (person: ContributorSuggestion) => void;
 }
 
-/** All CHC submissions search the same canonical artist identities and photos. */
+/** All Coptic Vine submissions search the same canonical artist identities and photos. */
 export function ContributorSearchField({
   accountId, label, value, selectedId, kind, allowKinds,
   placeholder, hint, onTextChange, onSelect,
@@ -67,7 +67,7 @@ export function ContributorSearchField({
       />
       {!!selectedId && (
         <View style={styles.linked}>
-          <Text style={styles.linkedText}>✓ Linked to an existing CHC profile</Text>
+          <Text style={styles.linkedText}>✓ Linked to an existing Coptic Vine profile</Text>
           <Pressable accessibilityRole="button" onPress={() => { onTextChange(value); setExpanded(true); }}>
             <Text style={uiStyles.link}>Change</Text>
           </Pressable>
@@ -75,10 +75,10 @@ export function ContributorSearchField({
       )}
       {expanded && !selectedId && value.trim().length >= 2 && (
         <View style={styles.results}>
-          {searching && <Text style={uiStyles.muted}>Finding similar CHC profiles…</Text>}
+          {searching && <Text style={uiStyles.muted}>Finding similar Coptic Vine profiles…</Text>}
           {!!error && <Text style={uiStyles.error}>{error}</Text>}
           {!searching && !error && !matches.length && (
-            <Text style={uiStyles.muted}>No matching profiles. Keep the name and CHC will create a reusable artist credit when you submit.</Text>
+            <Text style={uiStyles.muted}>No matching profiles. Keep the name and Coptic Vine will create a reusable artist credit when you submit.</Text>
           )}
           {matches.map((person) => {
             const image = person.profileImage
@@ -101,7 +101,7 @@ export function ContributorSearchField({
                 )}
                 <View style={styles.nameGroup}>
                   <Text style={styles.name} numberOfLines={1}>{person.title}</Text>
-                  <Text style={uiStyles.muted}>{person.kind === 'chorus' ? 'Chorus' : person.kind === 'cantor' ? 'Cantor' : 'Artist'} • Existing CHC profile</Text>
+                  <Text style={uiStyles.muted}>{person.kind === 'chorus' ? 'Chorus' : person.kind === 'cantor' ? 'Cantor' : 'Artist'} • Existing Coptic Vine profile</Text>
                 </View>
                 <Text style={uiStyles.link}>Link</Text>
               </Pressable>

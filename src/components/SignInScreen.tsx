@@ -41,7 +41,7 @@ export function SignInScreen({ initialError }: { initialError?: string }) {
   async function signUp() {
     setError('');
     setNotice('');
-    if (!displayName.trim()) return setError('Enter the name you want shown in CHC Artists.');
+    if (!displayName.trim()) return setError('Enter the name you want shown in Coptic Vine Artists.');
     if (password.length < 8) return setError('Use a password with at least 8 characters.');
     if (password !== confirmPassword) return setError('The passwords do not match.');
 
@@ -89,10 +89,10 @@ export function SignInScreen({ initialError }: { initialError?: string }) {
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.card}>
           <View style={styles.brandBlock}>
-            <Image source={BRAND_LOGO} style={styles.logo} resizeMode="contain" accessibilityLabel="CHC Artists" />
-            <Text style={styles.eyebrow}>CHC ARTISTS</Text>
+            <Image source={BRAND_LOGO} style={styles.logo} resizeMode="contain" accessibilityLabel="Coptic Vine Artists" />
+            <Text style={styles.eyebrow}>COPTIC VINE ARTISTS</Text>
           </View>
-          <Text style={styles.title}>{mode === 'signUp' ? 'Create your creator account' : 'Create, manage, and submit to CHC'}</Text>
+          <Text style={styles.title}>{mode === 'signUp' ? 'Create your creator account' : 'Create, manage, and submit to Coptic Vine'}</Text>
           <Text style={styles.subtitle}>Music and Learn & Study creator dashboard</Text>
 
           <View style={styles.modeRow} accessibilityRole="tablist">
@@ -179,8 +179,8 @@ export function SignInScreen({ initialError }: { initialError?: string }) {
           {!!notice && <Banner tone="success">{notice}</Banner>}
           <Text style={styles.note}>
             {mode === 'signUp'
-              ? 'Your CHC Artists creator workspace is created automatically the first time you sign in.'
-              : 'Your submissions stay private until CHC review and publication.'}
+              ? 'Your Coptic Vine Artists creator workspace is created automatically the first time you sign in.'
+              : 'Your submissions stay private until Coptic Vine review and publication.'}
           </Text>
         </View>
       </ScrollView>

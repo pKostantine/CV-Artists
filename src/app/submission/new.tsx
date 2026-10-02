@@ -25,7 +25,7 @@ const MODES: { id: SubmissionMode; title: string }[] = [
 ];
 
 const MODE_HELP: Record<SubmissionMode, string> = {
-  music: 'Enter the release title, choose the release details, then add audio. Track titles are guessed from filenames and remain editable. CHC determines Single, EP, or Album automatically.',
+  music: 'Enter the release title, choose the release details, then add audio. Track titles are guessed from filenames and remain editable. Coptic Vine determines Single, EP, or Album automatically.',
   learning_album: 'Enter the album title, choose a cantor or chorus, and add the recordings. Each recording gets its own editable multilingual title and a suggested order from its filename.',
   learning_lesson_set: 'Enter the lesson set title, choose a cantor, and add one or more ordered lessons for the same hymn.',
 };
@@ -55,7 +55,7 @@ const RECORDING_TYPE_VALUES: Record<string, string> = {
 };
 
 /**
- * One shared CHC artist picker for learning albums and lesson sets.
+ * One shared Coptic Vine artist picker for learning albums and lesson sets.
  * Cantors and choruses are artists, not separate identities or creation types.
  * Unselected names are resolved or created when the submission is sent.
  */
@@ -73,8 +73,8 @@ function LearningContributorPicker({ accountId, name, selectedArtistId, onNameCh
       kind="artist"
       value={name}
       selectedId={selectedArtistId}
-      placeholder="Search an existing CHC artist by name"
-      hint="Choose an existing profile to link it, including its photo. If no profile matches, keep your new name; CHC will create a reusable artist credit when you submit."
+      placeholder="Search an existing Coptic Vine artist by name"
+      hint="Choose an existing profile to link it, including its photo. If no profile matches, keep your new name; Coptic Vine will create a reusable artist credit when you submit."
       onTextChange={onNameChange}
       onSelect={(person) => onSelect(person.id, person.title)}
     />
@@ -120,7 +120,7 @@ function LearningHymnPicker({ accountId, options, value, onChange }: {
         onChange={onChange}
         placeholder={choices.length ? 'Select an existing hymn' : 'No learning hymns yet'}
       />
-      <Text style={uiStyles.muted}>Can't find the hymn? Add its title. CHC will review it with your lesson set.</Text>
+      <Text style={uiStyles.muted}>Can't find the hymn? Add its title. Coptic Vine will review it with your lesson set.</Text>
       <Field
         label="New hymn name"
         value={newName}
@@ -221,7 +221,7 @@ export default function NewSubmission() {
   if (isMusic && draft.recordingTypeOption === 'other' && !draft.recordingType.trim()) problems.push('Enter the other recording type.');
   if (isMusic && credits && !credits.identityArtist) problems.push('Your artist profile is still being set up.');
   if (!isMusic && !draft.learningArtistName.trim() && !draft.cantorId) {
-    problems.push('Enter an artist name or choose an existing CHC artist profile.');
+    problems.push('Enter an artist name or choose an existing Coptic Vine artist profile.');
   }
   if (draft.mode === 'learning_lesson_set' && !draft.hymnId) problems.push('Choose the hymn these lessons teach.');
   if (!draft.media.length) problems.push(`Add at least one ${draft.mode === 'learning_lesson_set' ? 'lesson' : 'audio'} file.`);
@@ -442,15 +442,15 @@ export default function NewSubmission() {
                 onChange={(value) => patch({ releaseTimingMode: value as CreatorDraft['releaseTimingMode'] })}
               />
               <Text style={uiStyles.muted}>
-                As soon as possible goes live immediately when CHC approves it. Scheduled releases go live automatically at the selected time after approval.
+                As soon as possible goes live immediately when Coptic Vine approves it. Scheduled releases go live automatically at the selected time after approval.
               </Text>
               {draft.releaseTimingMode === 'scheduled' && (
                 <ReleaseDateTimeField
-                  label="CHC release date & time"
+                  label="Coptic Vine release date & time"
                   value={draft.scheduledReleaseAt}
                   onChange={(scheduledReleaseAt) => patch({ scheduledReleaseAt })}
                   minimumDate={earliestReleaseChoice}
-                  hint="Uses your local time. Choose an exact time at least 48 hours from now. Once CHC approves it, you do not need an admin to press Publish at release time. If you require a release date that is closer than 48 hours, please email x@x.x."
+                  hint="Uses your local time. Choose an exact time at least 48 hours from now. Once Coptic Vine approves it, you do not need an admin to press Publish at release time. If you require a release date that is closer than 48 hours, please email x@x.x."
                 />
               )}
               <ReleaseDateTimeField
@@ -503,11 +503,11 @@ export default function NewSubmission() {
                 onChange={(value) => patch({ releaseTimingMode: value as CreatorDraft['releaseTimingMode'] })}
               />
               <Text style={uiStyles.muted}>
-                Publish as soon as CHC approves the learning material, or schedule publication at a specific date and time.
+                Publish as soon as Coptic Vine approves the learning material, or schedule publication at a specific date and time.
               </Text>
               {draft.releaseTimingMode === 'scheduled' && (
                 <ReleaseDateTimeField
-                  label="CHC release date & time"
+                  label="Coptic Vine release date & time"
                   value={draft.scheduledReleaseAt}
                   onChange={(scheduledReleaseAt) => patch({ scheduledReleaseAt })}
                   minimumDate={earliestReleaseChoice}
@@ -527,7 +527,7 @@ export default function NewSubmission() {
         )}
       </Card>
 
-      <Card title="Artwork & media" description="Files upload privately as soon as you choose them. Nothing is sent to CHC review until you press Submit.">
+      <Card title="Artwork & media" description="Files upload privately as soon as you choose them. Nothing is sent to Coptic Vine review until you press Submit.">
         <FileDropZone
           kind={draft.mode === 'learning_lesson_set' ? 'lesson' : 'audio'}
           onFiles={receiveDroppedFiles}
@@ -625,12 +625,12 @@ export default function NewSubmission() {
             {problems.map((problem) => <Text key={problem} style={uiStyles.muted}>• {problem}</Text>)}
           </View>
         ) : (
-          <Banner tone="success">Everything is ready. CHC aims to review submissions within 48 hours.</Banner>
+          <Banner tone="success">Everything is ready. Coptic Vine aims to review submissions within 48 hours.</Banner>
         )}
         {!!submitError && <Banner tone="error">{submitError}</Banner>}
 
         <View style={uiStyles.actions}>
-          <Button kind="primary" label={busy ? 'Submitting…' : 'Submit to CHC'} busy={busy} disabled={problems.length > 0} onPress={() => void submit()} style={styles.submit} />
+          <Button kind="primary" label={busy ? 'Submitting…' : 'Submit to Coptic Vine'} busy={busy} disabled={problems.length > 0} onPress={() => void submit()} style={styles.submit} />
           <Button kind="danger" label="Discard draft" disabled={busy} onPress={() => void discard()} />
         </View>
       </Card>

@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "chc-artists",
+  "name": "cv-artists",
   "compatibility_date": "2026-09-16",
   // Static-asset Worker: there is no server code, just the Expo web export.
   // The app is a single-page application, so any path that is not a real file

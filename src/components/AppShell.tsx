@@ -50,7 +50,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     try {
       await disableNativeNotificationDevice();
     } catch (error) {
-      console.warn('Unable to detach this device from CHC Artists notifications before sign-out:', error);
+      console.warn('Unable to detach this device from Coptic Vine Artists notifications before sign-out:', error);
     }
     await supabase.auth.signOut();
   };
@@ -71,8 +71,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <View style={styles.wideRoot}>
         <View style={[styles.sidebar, { paddingTop: SPACING.lg + insets.top }]}>
           <View style={styles.brandBlock}>
-            <Image source={BRAND_LOGO} style={styles.brandLogoWide} resizeMode="contain" accessibilityLabel="CHC Artists" />
-            <Text style={styles.brand}>CHC ARTISTS</Text>
+            <Image source={BRAND_LOGO} style={styles.brandLogoWide} resizeMode="contain" accessibilityLabel="Coptic Vine Artists" />
+            <Text style={styles.brand}>COPTIC VINE ARTISTS</Text>
           </View>
           <Text style={styles.account} numberOfLines={2}>{account?.displayName || 'Creator workspace'}</Text>
 
@@ -126,9 +126,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       <View style={[styles.mobileHeader, { paddingTop: Math.max(insets.top, SPACING.sm) }]}>
         <View style={styles.mobileHeaderRow}>
           <View style={styles.mobileIdentity}>
-            <Image source={BRAND_LOGO} style={styles.brandLogoSmall} resizeMode="contain" accessibilityLabel="CHC Artists" />
+            <Image source={BRAND_LOGO} style={styles.brandLogoSmall} resizeMode="contain" accessibilityLabel="Coptic Vine Artists" />
             <View style={styles.mobileTitleBlock}>
-              <Text style={styles.brand}>CHC ARTISTS</Text>
+              <Text style={styles.brand}>COPTIC VINE ARTISTS</Text>
               <Text style={styles.accountSmall} numberOfLines={1}>{account?.displayName || 'Creator workspace'}</Text>
             </View>
           </View>
