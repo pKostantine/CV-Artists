@@ -1,5 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
+  // Must match the deployed Worker. Deploying this app under any other name
+  // publishes it over a different site: the Worker was briefly serving the
+  // main Coptic Vine app because the main repo was deployed with --name here.
   "name": "cv-artists",
   "compatibility_date": "2026-09-16",
   // Static-asset Worker: there is no server code, just the Expo web export.
