@@ -194,7 +194,8 @@ The app talks to Supabase only through public RPCs; the `creator`, `media`, `mus
 1. **Google Cloud Console** — create an OAuth client of type *Web application*. Add `https://wtuujmeinzqfikvuofmh.supabase.co/auth/v1/callback` as an authorized redirect URI.
 2. **Supabase Dashboard → Authentication → Sign In / Providers → Google** — enable it and paste the client ID and secret.
 3. **Supabase Dashboard → Authentication → URL Configuration → Redirect URLs** — allow every place the app runs:
-   - `https://cv-artists.hrmpdd8d6c.workers.dev/**` (and any custom domain)
+   - `https://artists.copticvine.ca/**`
+   - `https://cv-artists.hrmpdd8d6c.workers.dev/**`
    - `http://localhost:8081/**` for local web development
    - `copticvineartists://**` for the iOS and Android apps
 
