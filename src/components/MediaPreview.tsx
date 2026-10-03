@@ -2,7 +2,7 @@ import { createElement, useEffect } from 'react';
 import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 
-import { COLORS, RADII, SPACING } from '@/constants/theme';
+import { COLORS, RADII, SPACING, TYPOGRAPHY } from '@/constants/theme';
 import type { UploadCandidate } from '@/types/creator';
 
 function clock(seconds: number): string {
@@ -70,23 +70,23 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     marginTop: SPACING.sm,
     borderRadius: RADII.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surfaceSoft,
+    backgroundColor: COLORS.surface,
   },
   head: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
-  name: { color: COLORS.white, fontWeight: '800', flex: 1 },
-  close: { color: COLORS.goldBright, fontWeight: '700', fontSize: 12 },
-  image: { width: '100%', height: 240, borderRadius: RADII.sm, backgroundColor: COLORS.black },
+  name: { color: COLORS.white, fontFamily: TYPOGRAPHY.title, fontWeight: '700', fontSize: 15, flex: 1 },
+  close: { color: COLORS.gold, fontWeight: '700', fontSize: 13 },
+  image: { width: '100%', height: 240, borderRadius: 12, backgroundColor: COLORS.black },
   transport: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
   playButton: {
     minWidth: 96,
-    paddingVertical: 10,
-    borderRadius: RADII.sm,
+    minHeight: 40,
+    justifyContent: 'center',
+    paddingVertical: 9,
+    borderRadius: RADII.pill,
     alignItems: 'center',
     backgroundColor: COLORS.gold,
   },
-  playText: { color: COLORS.black, fontWeight: '900' },
-  time: { color: COLORS.muted, fontVariant: ['tabular-nums'] },
-  muted: { color: COLORS.muted, fontSize: 12 },
+  playText: { color: COLORS.greenDeep, fontFamily: TYPOGRAPHY.title, fontWeight: '700', fontSize: 15 },
+  time: { color: COLORS.faint, fontVariant: ['tabular-nums'] },
+  muted: { color: COLORS.muted, fontSize: 12.5 },
 });

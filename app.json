@@ -4,8 +4,8 @@
     "slug": "cv-artists",
     "version": "0.1.0",
     "orientation": "default",
-    "icon": "./assets/images/CHC_Artists_App.png",
-    "scheme": "chcartists",
+    "icon": "./assets/images/coptic-vine-artists-icon.png",
+    "scheme": "copticvineartists",
     "userInterfaceStyle": "dark",
     "platforms": [
       "ios",
@@ -13,19 +13,19 @@
       "web"
     ],
     "ios": {
-      "icon": "./assets/images/CHC_Artists_App.png",
+      "icon": "./assets/images/coptic-vine-artists-icon.png",
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#11161B",
-        "foregroundImage": "./assets/images/CHC_Artists_App.png"
+        "backgroundColor": "#E9B93A",
+        "foregroundImage": "./assets/images/coptic-vine-artists-android-foreground.png"
       }
     },
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/images/CHC_Artists_sm_web.png"
+      "favicon": "./assets/images/coptic-vine-artists-favicon.png"
     },
     "plugins": [
       "expo-router",
@@ -35,11 +35,12 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#11161B",
-          "image": "./assets/images/CHC_Artists_App.png",
-          "resizeMode": "contain"
+          "backgroundColor": "#14301B",
+          "image": "./assets/images/coptic-vine-seal.png",
+          "imageWidth": 160
         }
-      ]
+      ],
+      "expo-font"
     ]
   }
 }

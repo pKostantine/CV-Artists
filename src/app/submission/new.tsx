@@ -128,7 +128,9 @@ function LearningHymnPicker({ accountId, options, value, onChange }: {
         placeholder="Enter the hymn you are teaching"
       />
       <Button
+        icon="add"
         label="Add new hymn"
+        style={styles.addLink}
         onPress={() => void addHymn()}
         busy={busy}
         disabled={!accountId || !newName.trim()}
@@ -336,9 +338,9 @@ export default function NewSubmission() {
   return (
     <Page scrollEnabled={!draggingTracks}>
       <PageHeader
+        back={{ label: 'All submissions', onPress: () => router.navigate('/') }}
         title="New submission"
         subtitle={MODE_HELP[draft.mode]}
-        action={<Button kind="ghost" label="← All submissions" onPress={() => router.navigate('/')} />}
       />
 
       <Card title="What are you submitting?">
@@ -550,13 +552,15 @@ export default function NewSubmission() {
         </View>
 
         {draft.artwork && (
-          <FileRow
-            file={draft.artwork}
-            previewing={previewId === draft.artwork.id}
-            onPreview={() => setPreviewId(previewId === draft.artwork!.id ? null : draft.artwork!.id)}
-            onRetry={() => uploadDraftFile(draft.artwork!)}
-            onRemove={() => setDraft((current) => ({ ...current, artwork: undefined }))}
-          />
+          <View style={styles.trackCard}>
+            <FileRow
+              file={draft.artwork}
+              previewing={previewId === draft.artwork.id}
+              onPreview={() => setPreviewId(previewId === draft.artwork!.id ? null : draft.artwork!.id)}
+              onRetry={() => uploadDraftFile(draft.artwork!)}
+              onRemove={() => setDraft((current) => ({ ...current, artwork: undefined }))}
+            />
+          </View>
         )}
 
         <ReorderableList
@@ -621,7 +625,7 @@ export default function NewSubmission() {
 
         {problems.length > 0 ? (
           <View style={styles.requirements}>
-            <Text style={styles.requirementsTitle}>Before you can submit:</Text>
+            <Text style={styles.requirementsTitle}>Before you can submit</Text>
             {problems.map((problem) => <Text key={problem} style={uiStyles.muted}>• {problem}</Text>)}
           </View>
         ) : (
@@ -631,7 +635,7 @@ export default function NewSubmission() {
 
         <View style={uiStyles.actions}>
           <Button kind="primary" label={busy ? 'Submitting…' : 'Submit to Coptic Vine'} busy={busy} disabled={problems.length > 0} onPress={() => void submit()} style={styles.submit} />
-          <Button kind="danger" label="Discard draft" disabled={busy} onPress={() => void discard()} />
+          <Button kind="danger" icon="trash-outline" label="Discard draft" disabled={busy} onPress={() => void discard()} />
         </View>
       </Card>
     </Page>
@@ -640,31 +644,25 @@ export default function NewSubmission() {
 
 const styles = StyleSheet.create({
   group: { gap: 8 },
-  inlineCreate: { gap: SPACING.sm, padding: SPACING.md, borderRadius: RADII.md, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.black },
+  inlineCreate: { gap: SPACING.sm, padding: SPACING.md, borderRadius: RADII.md, backgroundColor: COLORS.inset },
   addLink: { alignSelf: 'flex-start' },
   localeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.md },
   localeField: { flexGrow: 1, flexBasis: 220 },
   rtl: { textAlign: 'right', writingDirection: 'rtl' },
-  fileRow: { alignItems: 'center' },
+  fileRow: { alignItems: 'center', borderTopWidth: 0, paddingVertical: 4 },
   fileText: { flex: 1, minWidth: 200, gap: 3 },
   trackCard: {
     gap: SPACING.sm,
-    padding: SPACING.sm,
+    padding: 12,
     borderRadius: RADII.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surfaceSoft,
+    backgroundColor: COLORS.inset,
   },
-  fileActions: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  progressTrack: { height: 4, borderRadius: 2, backgroundColor: COLORS.border, overflow: 'hidden', marginTop: 4 },
+  fileActions: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  progressTrack: { height: 4, borderRadius: 2, backgroundColor: COLORS.hairline, overflow: 'hidden', marginTop: 4 },
   progressFill: { height: 4, backgroundColor: COLORS.gold },
-  previewTitle: { color: COLORS.white, fontFamily: TYPOGRAPHY.title, fontSize: 24 },
-  requirements: { gap: 4, padding: 12, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADII.sm, backgroundColor: COLORS.black },
-  requirementsTitle: { color: COLORS.white, fontWeight: '800', fontSize: 13 },
+  previewTitle: { color: COLORS.white, fontFamily: TYPOGRAPHY.title, fontSize: 24, lineHeight: 30, fontWeight: '700' },
+  requirements: { gap: 4, padding: 16, borderRadius: RADII.md, backgroundColor: COLORS.warningSoft },
+  requirementsTitle: { color: COLORS.warning, fontFamily: TYPOGRAPHY.title, fontWeight: '700', fontSize: 16, marginBottom: 2 },
   submit: { minWidth: 180 },
-  identity: { color: COLORS.goldBright, fontSize: 18, fontWeight: '900' },
-  credits: { paddingLeft: SPACING.md, paddingBottom: SPACING.sm, gap: SPACING.sm },
-  creditsBody: { gap: SPACING.md, padding: SPACING.md, borderRadius: RADII.md, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.black },
-  trackMetadata: { gap: SPACING.md, marginLeft: SPACING.md, marginBottom: SPACING.md, padding: SPACING.md, borderRadius: RADII.md, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surfaceSoft },
-  contributor: { gap: SPACING.sm, padding: SPACING.md, borderRadius: RADII.md, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
+  identity: { color: COLORS.goldBright, fontFamily: TYPOGRAPHY.title, fontSize: 19, fontWeight: '700' },
 });

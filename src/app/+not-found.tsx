@@ -1,13 +1,12 @@
 import { router } from 'expo-router';
-import { Button, Card, Page, PageHeader } from '@/components/ui';
+import { Button, EmptyState, Page, PageHeader } from '@/components/ui';
 
 export default function NotFound() {
   return (
     <Page>
-      <PageHeader title="Page not found" subtitle="That address is not part of Coptic Vine Artists." />
-      <Card>
-        <Button kind="primary" label="Go to submissions" onPress={() => router.replace('/')} />
-      </Card>
+      <PageHeader title="Page not found" />
+      <EmptyState title="That address is not part of Coptic Vine Artists." />
+      <Button kind="primary" label="Go to submissions" onPress={() => router.replace('/')} style={{ alignSelf: 'flex-start' }} />
     </Page>
   );
 }

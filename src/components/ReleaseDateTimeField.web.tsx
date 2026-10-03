@@ -1,5 +1,5 @@
 import { Text, View } from 'react-native';
-import { COLORS, RADII, SPACING } from '@/constants/theme';
+import { COLORS, RADII, SPACING, WEB_SYSTEM_FONT } from '@/constants/theme';
 
 function inputValue(value: string, mode: 'date' | 'datetime'): string {
   if (mode === 'date') return value.trim().slice(0, 10);
@@ -31,7 +31,7 @@ export function ReleaseDateTimeField({
 }) {
   return (
     <View style={{ gap: SPACING.sm }}>
-      <Text style={{ color: COLORS.goldBright, fontSize: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.7 }}>
+      <Text style={{ color: COLORS.muted, fontSize: 11.5, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.2 }}>
         {label}
       </Text>
       <input
@@ -43,16 +43,18 @@ export function ReleaseDateTimeField({
         style={{
           width: '100%',
           boxSizing: 'border-box',
+          minHeight: 46,
           borderRadius: RADII.sm,
-          border: `1px solid ${COLORS.border}`,
+          border: `1px solid ${COLORS.hairline}`,
           color: COLORS.white,
-          background: COLORS.black,
-          padding: '11px 12px',
-          font: 'inherit',
+          background: COLORS.inset,
+          padding: '11px 14px',
+          fontSize: 15,
+          fontFamily: WEB_SYSTEM_FONT,
           colorScheme: 'dark',
         }}
       />
-      {!!hint && <Text style={{ color: COLORS.muted, fontSize: 13, lineHeight: 19 }}>{hint}</Text>}
+      {!!hint && <Text style={{ color: COLORS.faint, fontSize: 12.5, lineHeight: 18 }}>{hint}</Text>}
     </View>
   );
 }

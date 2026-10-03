@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   handleWeb: { cursor: 'grab', touchAction: 'none', userSelect: 'none' } as object,
-  handleActive: { backgroundColor: 'rgba(212, 175, 55, 0.10)' },
+  handleActive: { backgroundColor: COLORS.goldSoft },
   handleDisabled: { opacity: 0.3 },
   dots: {
     width: 16,
@@ -274,6 +274,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 3,
   },
-  dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: COLORS.muted },
-  dotActive: { backgroundColor: COLORS.goldBright },
+  dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: COLORS.faint },
+  dotActive: { backgroundColor: COLORS.gold },
 });

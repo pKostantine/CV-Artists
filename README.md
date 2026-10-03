@@ -172,7 +172,7 @@ Coptic Vine Artists uses Expo Router and currently has four top-level creator se
 | /lyrics | Lyrics Studio for synchronized multilingual lyrics |
 | /profile | Artist profile image, biography, links, and profile settings |
 
-Top-level navigation uses client-side routing so installed web apps remain inside the same PWA instead of appearing to open external pages. On native platforms the same routes are available through the chcartists:// scheme.
+Top-level navigation uses client-side routing so installed web apps remain inside the same PWA instead of appearing to open external pages. On native platforms the same routes are available through the copticvineartists:// scheme.
 
 ---
 
@@ -196,7 +196,7 @@ The app talks to Supabase only through public RPCs; the `creator`, `media`, `mus
 3. **Supabase Dashboard → Authentication → URL Configuration → Redirect URLs** — allow every place the app runs:
    - `https://cv-artists.hrmpdd8d6c.workers.dev/**` (and any custom domain)
    - `http://localhost:8081/**` for local web development
-   - `chcartists://**` for the iOS and Android apps
+   - `copticvineartists://**` for the iOS and Android apps
 
 Until the provider is enabled, the button explains that Google sign-in is not switched on instead of sending the creator to an error page.
 

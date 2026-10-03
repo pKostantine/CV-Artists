@@ -3,7 +3,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { creatorService } from '@/services/creatorService';
 import { resolveImageUrl } from '@/services/mediaService';
 import { Field, uiStyles } from '@/components/ui';
-import { COLORS, RADII, SPACING } from '@/constants/theme';
+import { COLORS, RADII, SPACING, TYPOGRAPHY } from '@/constants/theme';
 import type { ContributorSuggestion } from '@/types/creator';
 
 interface Props {
@@ -115,13 +115,13 @@ export function ContributorSearchField({
 
 const styles = StyleSheet.create({
   container: { gap: SPACING.xs },
-  results: { gap: SPACING.xs, borderColor: COLORS.border, borderWidth: 1, borderRadius: RADII.md, padding: SPACING.sm },
-  result: { flexDirection: 'row', gap: SPACING.sm, alignItems: 'center', minHeight: 50, paddingVertical: SPACING.xs },
+  results: { gap: SPACING.xs, borderRadius: RADII.sm, backgroundColor: COLORS.surfaceSoft, padding: SPACING.sm },
+  result: { flexDirection: 'row', gap: SPACING.sm, alignItems: 'center', minHeight: 50, paddingVertical: SPACING.xs, paddingHorizontal: 6, borderRadius: 10 },
   avatar: { height: 40, width: 40, borderRadius: 20, overflow: 'hidden' },
-  fallback: { backgroundColor: COLORS.border, alignItems: 'center', justifyContent: 'center' },
-  initials: { color: COLORS.white, fontSize: 18, fontWeight: '700' },
+  fallback: { backgroundColor: COLORS.goldSoft, alignItems: 'center', justifyContent: 'center' },
+  initials: { color: COLORS.gold, fontFamily: TYPOGRAPHY.title, fontSize: 18, fontWeight: '700' },
   nameGroup: { flex: 1, minWidth: 0 },
-  name: { color: COLORS.white, fontWeight: '700', fontSize: 14 },
+  name: { color: COLORS.white, fontWeight: '600', fontSize: 14.5 },
   linked: { flexDirection: 'row', gap: SPACING.sm, alignItems: 'center', justifyContent: 'space-between' },
-  linkedText: { color: '#8fe0a8', fontSize: 12, fontWeight: '700' },
+  linkedText: { color: COLORS.success, fontSize: 12.5, fontWeight: '700' },
 });

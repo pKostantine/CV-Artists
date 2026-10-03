@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { MediaPreview } from '@/components/MediaPreview';
 import { FileSelectButton } from '@/components/FileSelectButton';
 import { Banner, Button, Card, Loading, Page, PageHeader, StatusPill, uiStyles } from '@/components/ui';
-import { COLORS, RADII, SPACING } from '@/constants/theme';
+import { COLORS, RADII, SPACING, TYPOGRAPHY } from '@/constants/theme';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import { creatorService } from '@/services/creatorService';
 import type { SubmissionItem, UploadCandidate } from '@/types/creator';
@@ -65,8 +65,11 @@ export default function SubmissionDetail() {
     if (loading) return <Page><Loading label="Loading submission…" /></Page>;
     return (
       <Page>
-        <PageHeader title="Submission not found" subtitle="It may belong to a different creator workspace." />
-        <Card><Button kind="primary" label="Back to submissions" onPress={() => router.replace('/')} /></Card>
+        <PageHeader
+          back={{ label: 'All submissions', onPress: () => router.replace('/') }}
+          title="Submission not found"
+          subtitle="It may belong to a different creator workspace."
+        />
       </Page>
     );
   }
@@ -119,12 +122,20 @@ export default function SubmissionDetail() {
   return (
     <Page>
       <PageHeader
+        back={{ label: 'All submissions', onPress: () => router.navigate('/') }}
+        eyebrow={submissionTypeLabel(submission.submissionType)}
         title={submission.title}
-        subtitle={`${submissionTypeLabel(submission.submissionType)} • Created ${shortDate(submission.createdAt)}`}
-        action={<Button kind="ghost" label="← All submissions" onPress={() => router.navigate('/')} />}
+        subtitle={`Created ${shortDate(submission.createdAt)}`}
       />
 
       {!!notice && <Banner tone="success">{notice}</Banner>}
+
+      {revising && (
+        <View style={styles.notes}>
+          <Text style={styles.notesTitle}>Changes requested</Text>
+          <Text style={styles.notesBody}>{submission.reviewNotes || 'The reviewer did not leave a note with this request.'}</Text>
+        </View>
+      )}
 
       {submission.submissionType === 'music_release' && (
         <Card
@@ -134,7 +145,9 @@ export default function SubmissionDetail() {
           <Text style={uiStyles.muted}>
             Open Lyrics Studio to add Coptic, Arabic, English, or French lyrics to each submitted track. You can start before publication; synchronized timing becomes available once the processed audio is attached.
           </Text>
-          <Button kind="secondary" label="Open Lyrics Studio" onPress={() => router.push('/lyrics')} />
+          <View style={uiStyles.actions}>
+            <Button label="Open Lyrics Studio" onPress={() => router.push('/lyrics')} />
+          </View>
         </Card>
       )}
 
@@ -150,13 +163,6 @@ export default function SubmissionDetail() {
         </View>
         {!!submission.description && <Text style={styles.body}>{submission.description}</Text>}
       </Card>
-
-      {revising && (
-        <View style={styles.notes}>
-          <Text style={styles.notesTitle}>Changes requested</Text>
-          <Text style={styles.notesBody}>{submission.reviewNotes || 'The reviewer did not leave a note with this request.'}</Text>
-        </View>
-      )}
 
       <Card title="Files">
         {itemsError ? (
@@ -225,7 +231,9 @@ export default function SubmissionDetail() {
 
           {!!blocking && added.length > 0 && <Text style={uiStyles.muted}>{blocking}</Text>}
           {!!error && <Banner tone="error">{error}</Banner>}
-          <Button kind="primary" label={busy ? 'Resubmitting…' : 'Resubmit for review'} busy={busy} disabled={Boolean(blocking)} onPress={() => void resubmit()} />
+          <View style={uiStyles.actions}>
+            <Button kind="primary" label={busy ? 'Resubmitting…' : 'Resubmit for review'} busy={busy} disabled={Boolean(blocking)} onPress={() => void resubmit()} />
+          </View>
         </Card>
       )}
     </Page>
@@ -233,13 +241,13 @@ export default function SubmissionDetail() {
 }
 
 const styles = StyleSheet.create({
-  statusRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, flexWrap: 'wrap' },
-  meta: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.lg },
-  body: { color: COLORS.white, lineHeight: 21 },
-  notes: { padding: SPACING.lg, gap: 6, borderRadius: RADII.md, borderWidth: 1, borderColor: '#7a5a1d', backgroundColor: '#241c09' },
-  notesTitle: { color: '#ffc36b', fontWeight: '900' },
-  notesBody: { color: COLORS.white, lineHeight: 21 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
+  meta: { flexDirection: 'row', flexWrap: 'wrap', columnGap: SPACING.lg, rowGap: 4 },
+  body: { color: COLORS.white, fontSize: 14.5, lineHeight: 22 },
+  notes: { padding: 18, gap: 6, borderRadius: RADII.lg, backgroundColor: COLORS.warningSoft },
+  notesTitle: { color: COLORS.warning, fontFamily: TYPOGRAPHY.title, fontSize: 17, fontWeight: '700' },
+  notesBody: { color: COLORS.white, fontSize: 14.5, lineHeight: 22 },
   fileText: { flex: 1, minWidth: 200, gap: 3 },
-  itemError: { color: COLORS.danger, fontSize: 12, lineHeight: 17 },
-  fileActions: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  itemError: { color: COLORS.danger, fontSize: 12.5, lineHeight: 18 },
+  fileActions: { flexDirection: 'row', alignItems: 'center', gap: 16 },
 });

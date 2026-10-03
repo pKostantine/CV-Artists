@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Banner, Button, Card, Field, Label, Loading, Page, PageHeader, StatusPill, uiStyles } from '@/components/ui';
-import { COLORS, RADII, SPACING } from '@/constants/theme';
+import { COLORS, RADII, SPACING, TYPOGRAPHY } from '@/constants/theme';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import { FileSelectButton } from '@/components/FileSelectButton';
 import { creatorService } from '@/services/creatorService';
@@ -292,7 +292,7 @@ export default function ArtistProfileScreen() {
     });
   }
 
-  if (loading) return <Loading label="Loading your profile…" />;
+  if (loading) return <Page><Loading label="Loading your profile…" /></Page>;
 
   if (!profile) {
     return (
@@ -371,7 +371,13 @@ export default function ArtistProfileScreen() {
                 key={release.id}
                 onPress={() => togglePin(release.id)}
                 accessibilityState={{ selected: index >= 0 }}
-                style={[uiStyles.row, index >= 0 && styles.pinnedRow]}
+                style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [
+                  uiStyles.row,
+                  styles.pinRow,
+                  hovered && styles.pinRowHover,
+                  index >= 0 && styles.pinnedRow,
+                  pressed && styles.pressed,
+                ]}
               >
                 <View style={styles.pinBody}>
                   <Text style={uiStyles.rowTitle}>{release.title}</Text>
@@ -429,7 +435,7 @@ export default function ArtistProfileScreen() {
               label="Name"
               value={link.name}
               onChangeText={(name) => updateExtraLink(link.id, { name })}
-              placeholder="e.g. Coptic Hymns Archive"
+              placeholder="e.g. Parish website"
             />
             {!!linkErrors[`extra:${link.id}:name`] && (
               <Text style={uiStyles.errorDetail}>{linkErrors[`extra:${link.id}:name`]}</Text>
@@ -452,6 +458,8 @@ export default function ArtistProfileScreen() {
             )}
             <Button
               kind="ghost"
+              size="sm"
+              icon="trash-outline"
               label="Remove extra link"
               onPress={() => {
                 setExtraLinks((current) => current.filter((item) => item.id !== link.id));
@@ -467,8 +475,9 @@ export default function ArtistProfileScreen() {
         ))}
 
         <Button
-          kind="secondary"
-          label="+ Add extra link"
+          icon="add"
+          label="Add extra link"
+          style={styles.addLink}
           onPress={() => setExtraLinks((current) => [...current, newExtraLink()])}
         />
       </Card>
@@ -477,17 +486,21 @@ export default function ArtistProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  pictureRow: { flexDirection: 'row', gap: SPACING.md, alignItems: 'center', flexWrap: 'wrap' },
+  pictureRow: { flexDirection: 'row', gap: 20, alignItems: 'center', flexWrap: 'wrap' },
   pictureBody: { gap: SPACING.sm, flex: 1, minWidth: 200 },
-  avatar: { width: 108, height: 108, borderRadius: 54, backgroundColor: COLORS.surfaceSoft, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  avatar: { width: 112, height: 112, borderRadius: 56, backgroundColor: COLORS.goldSoft, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   avatarImage: { width: '100%', height: '100%' },
-  avatarFallback: { color: COLORS.goldBright, fontSize: 40, fontWeight: '900' },
+  avatarFallback: { color: COLORS.gold, fontFamily: TYPOGRAPHY.title, fontSize: 44, fontWeight: '700' },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
-  pinnedRow: { borderRadius: RADII.sm, borderColor: COLORS.gold },
+  pinRow: { borderRadius: 12, paddingHorizontal: 12, borderTopColor: 'transparent' },
+  pinRowHover: { backgroundColor: COLORS.hover },
+  pinnedRow: { backgroundColor: COLORS.goldSoft },
+  pressed: { opacity: 0.82 },
   pinBody: { flex: 1, minWidth: 160, gap: 3 },
-  pinMark: { color: COLORS.muted, fontWeight: '800', fontSize: 12 },
-  pinMarkOn: { color: COLORS.goldBright },
+  pinMark: { color: COLORS.faint, fontWeight: '700', fontSize: 12.5 },
+  pinMarkOn: { color: COLORS.gold },
   linkField: { gap: 2 },
-  extraLink: { gap: SPACING.sm, padding: SPACING.md, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADII.md, backgroundColor: COLORS.black },
-  extraLinkTitle: { color: COLORS.white, fontWeight: '900', fontSize: 14 },
+  extraLink: { gap: SPACING.sm, padding: SPACING.md, borderRadius: RADII.md, backgroundColor: COLORS.inset },
+  extraLinkTitle: { color: COLORS.white, fontFamily: TYPOGRAPHY.title, fontWeight: '700', fontSize: 16 },
+  addLink: { alignSelf: 'flex-start' },
 });

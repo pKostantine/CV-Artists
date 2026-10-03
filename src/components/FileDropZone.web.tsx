@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, type DragEvent } from 'react';
-import { COLORS, RADII, SPACING } from '@/constants/theme';
+import { COLORS, RADII, SPACING, TYPOGRAPHY, WEB_SYSTEM_FONT } from '@/constants/theme';
 
 const ACCEPT: Record<'audio' | 'lesson', string> = {
   audio: 'audio/*,.mp3,.m4a,.wav,.flac,.aac,.ogg,.webm',
@@ -68,16 +68,17 @@ export function FileDropZone({
         gap: SPACING.sm,
         padding: SPACING.lg,
         borderRadius: RADII.md,
-        border: `2px dashed ${active ? COLORS.gold : COLORS.border}`,
-        background: active ? COLORS.surfaceSoft : COLORS.black,
+        border: `1.5px dashed ${active ? COLORS.gold : COLORS.goldLine}`,
+        background: active ? COLORS.goldSoft : COLORS.inset,
         cursor: 'pointer',
         minHeight: 92,
+        transition: 'background 220ms, border-color 220ms',
       }}
     >
-      <strong style={{ color: COLORS.white, fontSize: 16 }}>
+      <strong style={{ color: COLORS.white, fontFamily: `${TYPOGRAPHY.title}, serif`, fontSize: 17 }}>
         {kind === 'lesson' ? 'Choose or drop lesson files' : 'Choose or drop audio files'}
       </strong>
-      <span style={{ color: COLORS.muted, fontSize: 13 }}>
+      <span style={{ color: COLORS.muted, fontFamily: WEB_SYSTEM_FONT, fontSize: 13.5, lineHeight: '20px' }}>
         Tap to choose files on iPhone/iPad or drop multiple files here on desktop. Reorder after selecting.
       </span>
       <input

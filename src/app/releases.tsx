@@ -1,8 +1,9 @@
 import { useCallback, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { Banner, Button, Card, Loading, Page, PageHeader, StatusPill, uiStyles } from '@/components/ui';
-import { COLORS, RADII, SPACING } from '@/constants/theme';
+import { BuddedCross } from '@/components/Ornaments';
+import { Banner, Button, EmptyState, Loading, Page, PageHeader, Pill, RowCard, Section, StatusPill, uiStyles } from '@/components/ui';
+import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import { creatorService } from '@/services/creatorService';
 import { resolveImageUrl } from '@/services/mediaService';
@@ -20,36 +21,31 @@ function ReleaseRow({ release }: { release: CreatorReleaseSummary }) {
     : null;
 
   return (
-    <Pressable
-      accessibilityRole="link"
+    <RowCard
+      accessibilityLabel={`Edit ${release.title}`}
       onPress={() => router.push({ pathname: '/release/[id]', params: { id: release.id } })}
-      style={({ pressed }) => [styles.releaseRow, pressed && styles.pressed]}
     >
       <View style={styles.cover}>
         {artworkUrl ? (
           <Image source={{ uri: artworkUrl }} style={styles.coverImage} resizeMode="cover" />
         ) : (
-          <Text style={styles.coverFallback}>CV</Text>
+          <BuddedCross size={22} />
         )}
       </View>
 
       <View style={styles.releaseBody}>
-        <View style={styles.titleLine}>
-          <Text style={styles.title}>{release.title}</Text>
+        <Text style={styles.title}>{release.title}</Text>
+        <View style={styles.pills}>
           <StatusPill status={release.publicationStatus} />
+          <Pill label={`${release.releaseType.toUpperCase()}  ·  ${release.trackCount} track${release.trackCount === 1 ? '' : 's'}`} />
         </View>
-        <Text style={uiStyles.muted}>
-          {release.releaseType.toUpperCase()} • {release.trackCount} track{release.trackCount === 1 ? '' : 's'}
-        </Text>
         <Text style={release.releaseState === 'ready' ? styles.ready : styles.released}>
           {release.releaseState === 'ready'
-            ? `Ready for release • Goes live ${dateLabel(release.scheduledReleaseAt)}`
-            : `Released • ${release.displayDate || dateLabel(release.scheduledReleaseAt)}`}
+            ? `Goes live ${dateLabel(release.scheduledReleaseAt)}`
+            : `Released ${release.displayDate || dateLabel(release.scheduledReleaseAt)}`}
         </Text>
       </View>
-
-      <Text style={uiStyles.link}>Edit release ›</Text>
-    </Pressable>
+    </RowCard>
   );
 }
 
@@ -79,7 +75,7 @@ export default function ReleasesScreen() {
     void load();
   }, [load]));
 
-  if (loading && !releases.length) return <Loading label="Loading releases…" />;
+  if (loading && !releases.length) return <Page><Loading label="Loading releases…" /></Page>;
 
   const ready = releases.filter((release) => release.releaseState === 'ready');
   const released = releases.filter((release) => release.releaseState === 'released');
@@ -91,7 +87,7 @@ export default function ReleasesScreen() {
         subtitle="Approved, fully processed music and everything you have already released."
         action={(
           <Button
-            kind="secondary"
+            icon="refresh-outline"
             label={refreshing ? 'Refreshing…' : 'Refresh'}
             busy={refreshing}
             onPress={() => void load(true)}
@@ -101,9 +97,10 @@ export default function ReleasesScreen() {
 
       {!!error && <Banner tone="error">{error}</Banner>}
 
-      <Card
-        title={`Ready for release (${ready.length})`}
-        description="Coptic Vine has approved these releases and every required media file is processed. You can still edit them here."
+      <Section
+        title="Ready for release"
+        count={ready.length}
+        description="Coptic Vine has approved these and every required media file is processed. You can still edit them."
       >
         {ready.length ? (
           <View style={styles.list}>
@@ -112,55 +109,40 @@ export default function ReleasesScreen() {
         ) : (
           <Text style={uiStyles.muted}>Nothing is waiting for release right now.</Text>
         )}
-      </Card>
+      </Section>
 
-      <Card
-        title={`Released (${released.length})`}
-        description="Music already published to Coptic Vine. Open any release to change its details, artwork, tracks, credits, or dates."
+      <Section
+        title="Released"
+        count={released.length}
+        description="Music already published to Coptic Vine. Open a release to change its details, artwork, tracks, credits or dates."
       >
         {released.length ? (
           <View style={styles.list}>
             {released.map((release) => <ReleaseRow key={release.id} release={release} />)}
           </View>
         ) : (
-          <Text style={uiStyles.muted}>You have not released any music on Coptic Vine yet.</Text>
+          <EmptyState title="Nothing released yet" description="Your music appears here once Coptic Vine publishes it." />
         )}
-      </Card>
+      </Section>
     </Page>
   );
 }
 
 const styles = StyleSheet.create({
   list: { gap: SPACING.sm },
-  releaseRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: SPACING.md,
-    paddingVertical: 12,
-    paddingHorizontal: 0,
-    borderRadius: 0,
-    borderTopWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: 'transparent',
-  },
   cover: {
-    width: 58,
-    height: 58,
-    borderRadius: RADII.sm,
+    width: 64,
+    height: 64,
+    borderRadius: 12,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surfaceSoft,
+    backgroundColor: COLORS.goldSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
   coverImage: { width: '100%', height: '100%' },
-  coverFallback: { color: COLORS.goldBright, fontWeight: '900', fontSize: 12 },
-  releaseBody: { flex: 1, minWidth: 180, gap: 3 },
-  titleLine: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: SPACING.sm },
-  title: { color: COLORS.white, fontSize: 15, fontWeight: '800', flexShrink: 1 },
-  ready: { color: '#ffc36b', fontSize: 12, fontWeight: '800' },
-  released: { color: '#b5ecc6', fontSize: 12, fontWeight: '800' },
-  pressed: { opacity: 0.78 },
+  releaseBody: { flex: 1, minWidth: 0, gap: 6 },
+  title: { color: COLORS.white, fontFamily: TYPOGRAPHY.title, fontSize: 18, lineHeight: 23, fontWeight: '700' },
+  pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  ready: { color: COLORS.gold, fontSize: 13, fontWeight: '600' },
+  released: { color: COLORS.success, fontSize: 13, fontWeight: '600' },
 });

@@ -28,14 +28,12 @@ export function ChoiceChips<T extends string>({
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
   chip: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: RADII.pill,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.inset,
   },
-  selected: { borderColor: COLORS.gold, backgroundColor: COLORS.navy },
-  text: { color: COLORS.muted, fontFamily: TYPOGRAPHY.body, fontSize: 13, fontWeight: '600' },
-  selectedText: { color: COLORS.white },
+  selected: { backgroundColor: COLORS.gold },
+  text: { color: COLORS.muted, fontFamily: TYPOGRAPHY.body, fontSize: 13.5, fontWeight: '600' },
+  selectedText: { color: COLORS.greenDeep, fontWeight: '700' },
 });

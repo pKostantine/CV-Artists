@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent, type CSSProperties } from 'react';
-import { COLORS, RADII, SPACING } from '@/constants/theme';
+import { COLORS, RADII, SPACING, TYPOGRAPHY } from '@/constants/theme';
 import type { FileSelectButtonProps } from './FileSelectButton';
+import { WEB_SYSTEM_FONT } from '@/constants/theme';
 import { droppedUploadCandidates } from '@/utils/uploads';
 
 const ACCEPT: Record<FileSelectButtonProps['kind'], string> = {
@@ -50,13 +51,15 @@ export function FileSelectButton({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 44,
-    padding: `${SPACING.sm + 2}px ${SPACING.md}px`,
+    padding: `${SPACING.sm + 2}px 18px`,
+    boxSizing: 'border-box',
     borderRadius: RADII.sm,
-    border: `1px solid ${focused ? COLORS.gold : COLORS.border}`,
-    background: COLORS.surfaceSoft,
-    color: COLORS.goldBright,
-    fontWeight: 800,
-    fontSize: 14,
+    border: `1px solid ${focused ? COLORS.gold : COLORS.goldLine}`,
+    background: focused ? COLORS.goldSoft : 'transparent',
+    color: COLORS.gold,
+    fontFamily: `${TYPOGRAPHY.title}, serif`,
+    fontWeight: 700,
+    fontSize: 15.5,
     cursor: off ? 'not-allowed' : 'pointer',
     opacity: off ? 0.48 : 1,
     userSelect: 'none',
@@ -65,7 +68,7 @@ export function FileSelectButton({
   };
 
   return (
-    <div style={{ display: 'inline-flex', flexDirection: 'column', gap: SPACING.xs, maxWidth: '100%' }}>
+    <div style={{ display: 'inline-flex', flexDirection: 'column', alignSelf: 'flex-start', gap: SPACING.xs, maxWidth: '100%' }}>
       <label style={button}>
         <span aria-hidden="true">{busy ? 'Uploading…' : label}</span>
         <input
@@ -90,7 +93,7 @@ export function FileSelectButton({
           }}
         />
       </label>
-      {!!localError && <span role="alert" style={{ color: COLORS.danger, fontSize: 12 }}>{localError}</span>}
+      {!!localError && <span role="alert" style={{ color: COLORS.danger, fontSize: 12.5, fontFamily: WEB_SYSTEM_FONT }}>{localError}</span>}
     </div>
   );
 }

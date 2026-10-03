@@ -111,19 +111,23 @@ export function TrackCreditsEditor({
                 </View>
                 <Button
                   kind="ghost"
+                  size="sm"
+                  icon="trash-outline"
                   label="Remove contributor"
+                  style={styles.addLink}
                   onPress={() => onChange({ contributors: contributors.filter((x) => x.id !== credit.id) })}
                 />
               </View>
             ))}
 
-            <Button label="+ Add contributor" onPress={addContributor} />
+            <Button icon="add" label="Add contributor" style={styles.addLink} onPress={addContributor} />
           </View>
 
           {onCopyToAll && (
             <Button
-              kind="secondary"
+              kind="ghost"
               label="Copy these credits to all tracks"
+              style={styles.addLink}
               onPress={onCopyToAll}
             />
           )}
@@ -194,10 +198,10 @@ export function TrackMetadataEditor({
 }
 
 const styles = StyleSheet.create({
-  trackMetadata: { gap: SPACING.md, padding: SPACING.md, borderRadius: RADII.md, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
+  trackMetadata: { gap: SPACING.md, padding: SPACING.md, borderRadius: RADII.md, backgroundColor: COLORS.surface },
   credits: { paddingLeft: SPACING.md, paddingBottom: SPACING.sm, gap: SPACING.sm },
-  creditsBody: { gap: SPACING.md, padding: SPACING.md, borderRadius: RADII.md, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.black },
-  contributor: { gap: SPACING.sm, paddingTop: SPACING.sm, borderTopWidth: 1, borderTopColor: COLORS.border },
+  creditsBody: { gap: SPACING.md, padding: SPACING.md, borderRadius: RADII.md, backgroundColor: COLORS.inset },
+  contributor: { gap: SPACING.sm, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: COLORS.hairline },
   group: { gap: SPACING.sm },
   addLink: { alignSelf: 'flex-start' },
   localeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.md },

@@ -6,7 +6,7 @@ import { Loading } from '@/components/ui';
 import { completeOAuthFromUrl, describeAuthError } from '@/services/authService';
 
 /**
- * Native deep link target for Google sign-in (chcartists://auth/callback).
+ * Native deep link target for Google sign-in (copticvineartists://auth/callback).
  * Usually openAuthSessionAsync captures the redirect first; this covers the
  * cases where the OS opens the app with the link instead.
  */

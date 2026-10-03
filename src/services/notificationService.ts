@@ -7,6 +7,9 @@ import { supabase } from '@/services/supabase';
 export type NotificationPreferenceMap = Record<string, boolean>;
 export type NotificationSyncResult = 'registered' | 'permission_required' | 'signed_out' | 'unsupported' | 'unconfigured';
 
+// These keep their original chc names: the app key is checked by the
+// database, the push dispatcher sends to the 'chc-default' channel, and
+// renaming the storage key would re-register every device.
 const APP_KEY = 'chc_artists';
 const PROVIDER = 'expo';
 const CHANNEL_ID = 'chc-default';

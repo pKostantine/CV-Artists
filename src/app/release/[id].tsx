@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { FileDropZone } from '@/components/FileDropZone';
+import { BuddedCross } from '@/components/Ornaments';
 import { FileSelectButton } from '@/components/FileSelectButton';
 import { ReleaseDateTimeField } from '@/components/ReleaseDateTimeField';
 import { ReorderableList } from '@/components/ReorderableList';
@@ -356,13 +357,13 @@ export default function EditRelease() {
     }
   }
 
-  if (loading) return <Loading label="Loading release…" />;
+  if (loading) return <Page><Loading label="Loading release…" /></Page>;
 
   if (!release) {
     return (
       <Page>
-        <Pressable onPress={() => router.replace('/releases')} hitSlop={8}><Text style={uiStyles.link}>‹ Releases</Text></Pressable>
-        <Card title="Could not load this release" description={error || 'Release not found.'} />
+        <PageHeader back={{ label: 'Releases', onPress: () => router.replace('/releases') }} title="Could not load this release" />
+        <Banner tone="error">{error || 'Release not found.'}</Banner>
       </Page>
     );
   }
@@ -376,11 +377,11 @@ export default function EditRelease() {
 
   return (
     <Page scrollEnabled={!draggingTracks}>
-      <Pressable onPress={() => router.replace('/releases')} hitSlop={8}><Text style={uiStyles.link}>‹ Releases</Text></Pressable>
-
       <PageHeader
+        back={{ label: 'Releases', onPress: () => router.replace('/releases') }}
+        eyebrow={release.releaseType}
         title={release.title}
-        subtitle={`${release.releaseType.toUpperCase()} • released as ${release.primaryArtist?.displayName ?? '—'}`}
+        subtitle={`Released as ${release.primaryArtist?.displayName ?? '—'}`}
         action={<Button
           kind="primary"
           label={busy ? 'Saving…' : 'Save changes'}
@@ -514,7 +515,7 @@ export default function EditRelease() {
             {shownCover ? (
               <Image source={{ uri: shownCover }} style={styles.coverImage} resizeMode="cover" />
             ) : (
-              <Text style={styles.coverFallback}>No artwork</Text>
+              <BuddedCross size={36} />
             )}
           </View>
           <View style={styles.artworkActions}>
@@ -544,7 +545,7 @@ export default function EditRelease() {
           disabled={busy || deletingRelease || Boolean(deletingTrackKey)}
           renderItem={(track, index, dragHandle) => (
             <View style={styles.track}>
-              <View style={[uiStyles.row, styles.trackHeader]}>
+              <View style={styles.trackHeader}>
                 {dragHandle}
                 <View style={styles.trackBody}>
                   {track.upload ? (
@@ -555,17 +556,14 @@ export default function EditRelease() {
                     <Text style={uiStyles.muted}>Track {index + 1} • already on this release</Text>
                   )}
                 </View>
-                <View style={styles.trackActions}>
-                  <Pressable
-                    disabled={busy || deletingRelease || deletingTrackKey === track.key}
-                    onPress={() => void removeTrack(track)}
-                    hitSlop={6}
-                  >
-                    <Text style={uiStyles.remove}>
-                      {deletingTrackKey === track.key ? 'Deleting…' : track.id ? 'Delete track' : 'Remove'}
-                    </Text>
-                  </Pressable>
-                </View>
+                <Button
+                  kind="danger"
+                  size="sm"
+                  icon="trash-outline"
+                  label={deletingTrackKey === track.key ? 'Deleting…' : track.id ? 'Delete track' : 'Remove'}
+                  disabled={busy || deletingRelease || deletingTrackKey === track.key}
+                  onPress={() => void removeTrack(track)}
+                />
               </View>
 
               <TrackMetadataEditor
@@ -584,12 +582,14 @@ export default function EditRelease() {
       </Card>
 
       <Card
-        title="Danger zone"
-        description="Deleting a release permanently removes it from the Coptic Vine music catalog. Submission history is retained for audit purposes."
+        eyebrow="Danger zone"
+        title="Delete this release"
+        description="Deleting a release permanently removes it from the Coptic Vine music catalog. Submission history is kept for audit purposes."
       >
         <View style={uiStyles.actions}>
           <Button
             kind="danger"
+            icon="trash-outline"
             label={deletingRelease ? 'Deleting release…' : 'Delete release'}
             busy={deletingRelease}
             disabled={busy || Boolean(deletingTrackKey)}
@@ -613,24 +613,18 @@ const styles = StyleSheet.create({
     height: 180,
     borderRadius: RADII.md,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.black,
+    backgroundColor: COLORS.goldSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
   coverImage: { width: '100%', height: '100%' },
-  coverFallback: { color: COLORS.muted, fontWeight: '800' },
   artworkActions: { flex: 1, minWidth: 220, gap: SPACING.sm },
   track: {
     gap: SPACING.sm,
-    padding: SPACING.sm,
+    padding: 12,
     borderRadius: RADII.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surfaceSoft,
+    backgroundColor: COLORS.inset,
   },
-  trackHeader: { alignItems: 'center' },
-  trackBody: { flex: 1, minWidth: 200, gap: 4 },
-  trackActions: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  trackHeader: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 10 },
+  trackBody: { flex: 1, minWidth: 180, gap: 4 },
 });

@@ -47,7 +47,7 @@ function clearWebAuthCode() {
 export default function RootLayout() {
   const pathname = usePathname();
   const [fontsLoaded] = useLocalFonts({
-    Athanasius: require('../../assets/fonts/CopticCHC-Athanasius-V1.0.ttf'),
+    Athanasius: require('../../assets/fonts/CopticVine-Athanasius-v1.0.ttf'),
   });
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
@@ -67,7 +67,7 @@ export default function RootLayout() {
   if (!fontsLoaded) {
     return (
       <SafeAreaProvider>
-        <View style={styles.root} />
+        <View style={[styles.root, styles.opening]} />
       </SafeAreaProvider>
     );
   }
@@ -77,7 +77,7 @@ export default function RootLayout() {
     // Native OAuth deep link: that route finishes the exchange itself.
     content = <AppStack />;
   } else if (!ready) {
-    content = <Loading label="Opening Coptic Vine Artists…" />;
+    content = <Loading full label="Opening Coptic Vine Artists…" />;
   } else if (!session) {
     content = <SignInScreen initialError={authError} />;
   } else {
@@ -102,4 +102,6 @@ export default function RootLayout() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: COLORS.black },
+  // Matches the splash and the web page behind the app until the fonts load.
+  opening: { backgroundColor: COLORS.greenDeep },
 });

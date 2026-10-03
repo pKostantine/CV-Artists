@@ -11,7 +11,8 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import { Banner, Loading, PageHeader } from '@/components/ui';
+import { HeroGlow } from '@/components/Brand';
+import { Banner, CardFill, Loading, PageHeader } from '@/components/ui';
 import { COLORS, RADII, SPACING, TYPOGRAPHY } from '@/constants/theme';
 import { resolveTrackAudio } from '@/services/mediaService';
 import { listEditableTracks, loadLyricDraft, publishLyricLanguages, saveLyricStudioDraft } from '@/services/lyricsService';
@@ -662,11 +663,13 @@ export function LyricsStudio() {
     editRows((current) => current.map((row) => ({ ...row, startMs: null, endMs: null })));
   }
 
-  if (loading) return <Loading label="Loading your editable tracks…" />;
+  if (loading) return <View style={styles.screen}><Loading label="Loading your editable tracks…" /></View>;
 
   if (!tracks.length) {
     return (
-      <ScrollView style={styles.screen} contentContainerStyle={[styles.content, compact && styles.contentCompact]}>
+      <ScrollView style={styles.screen} contentContainerStyle={styles.scroll}>
+        <HeroGlow />
+        <View style={[styles.content, compact && styles.contentCompact]}>
         <PageHeader title="Lyrics Studio" subtitle="Add unsynced or synchronized lyrics to music and learning content." />
         {message?.tone === 'error' ? (
           <Banner tone="error">{message.text}</Banner>
@@ -675,6 +678,7 @@ export function LyricsStudio() {
             No editable music tracks, learning recordings, or lessons are ready yet.
           </Banner>
         )}
+        </View>
       </ScrollView>
     );
   }
@@ -682,16 +686,19 @@ export function LyricsStudio() {
   return (
     <View style={styles.screen}>
       <ScrollView
-        contentContainerStyle={[styles.content, compact && styles.contentCompact]}
+        contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
         scrollEnabled={!dragging}
       >
+        <HeroGlow />
+        <View style={[styles.content, compact && styles.contentCompact]}>
         <PageHeader
           title="Lyrics Studio"
           subtitle="Create multilingual lyrics for music, learning albums, and lesson sets."
         />
 
         <View style={[styles.panel, compact && styles.panelCompact]}>
+          <CardFill />
           <Text style={styles.sectionTitle}>1. Choose a track</Text>
           <View style={[styles.trackList, compact && styles.trackListCompact]}>
             {tracks.map((track) => (
@@ -713,6 +720,7 @@ export function LyricsStudio() {
         </View>
 
         <View style={[styles.panel, compact && styles.panelCompact]}>
+          <CardFill />
           <Text style={styles.sectionTitle}>2. Choose the lyric style</Text>
           <Text style={styles.muted}>
             Unsynced lyrics read as a continuous text. Synced lyrics follow playback line by line.
@@ -742,6 +750,7 @@ export function LyricsStudio() {
         </View>
 
         <View style={[styles.panel, compact && styles.panelCompact]}>
+          <CardFill />
           <Text style={styles.sectionTitle}>3. Choose your languages</Text>
           <Text style={styles.muted}>
             {syncPrecision === 'line'
@@ -776,6 +785,7 @@ export function LyricsStudio() {
         </View>
 
         <View style={[styles.panel, compact && styles.panelCompact]}>
+          <CardFill />
           <View style={styles.sectionCopy}>
             <Text style={styles.sectionTitle}>4. Add the lyrics</Text>
             <Text style={styles.muted}>
@@ -884,6 +894,7 @@ export function LyricsStudio() {
         </View>
 
         <View style={[styles.syncPanel, compact && styles.panelCompact]}>
+          <CardFill />
           <View style={styles.rowBetween}>
             <View style={styles.sectionCopy}>
               <Text style={styles.sectionTitle}>{syncPrecision === 'line' ? '5. Sync the lines' : '5. Arrange the lines'}</Text>
@@ -1044,7 +1055,7 @@ export function LyricsStudio() {
             onPress={addLine}
             style={[styles.addLineFull, dragging && styles.disabledButton]}
           >
-            <Text style={styles.addLineFullText}>+ Add line</Text>
+            <Text style={styles.addLineFullText}>Add line</Text>
           </Pressable>
 
           <View style={styles.publishFooter}>
@@ -1067,6 +1078,7 @@ export function LyricsStudio() {
 
         {!!rows.length && (
           <View style={[styles.previewPanel, compact && styles.panelCompact]}>
+          <CardFill />
             <Text style={styles.sectionTitle}>Live multilingual preview</Text>
             <Text style={styles.muted}>{syncPrecision === 'line' ? 'All chosen languages advance together on the same timestamp.' : 'All chosen languages appear in the shared row order.'}</Text>
             <View style={styles.preview}>
@@ -1099,6 +1111,7 @@ export function LyricsStudio() {
             </View>
           </View>
         )}
+        </View>
       </ScrollView>
     </View>
   );
@@ -1106,91 +1119,86 @@ export function LyricsStudio() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: COLORS.black },
+  scroll: { flexGrow: 1 },
   content: {
     width: '100%',
     maxWidth: 1320,
     alignSelf: 'center',
-    padding: SPACING.lg,
-    gap: SPACING.md,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: 36,
+    gap: 18,
     paddingBottom: 80,
   },
-  contentCompact: { paddingHorizontal: 16, paddingTop: 18, gap: 22, paddingBottom: 40 },
+  contentCompact: { paddingHorizontal: SPACING.md, paddingTop: 22, gap: 16, paddingBottom: 40 },
   panel: {
     gap: SPACING.md,
-    padding: SPACING.lg,
+    padding: 22,
     borderRadius: RADII.lg,
+    overflow: 'hidden',
     backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
   },
-  panelCompact: { padding: 0, paddingTop: 16, borderRadius: 0, backgroundColor: 'transparent', borderWidth: 0, borderTopWidth: 1, borderTopColor: COLORS.border },
+  panelCompact: { padding: 18, borderRadius: 18 },
   syncPanel: {
     gap: SPACING.lg,
-    padding: SPACING.lg,
+    padding: 22,
     borderRadius: RADII.lg,
+    overflow: 'hidden',
     backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.gold,
   },
   previewPanel: {
     gap: SPACING.md,
-    padding: SPACING.lg,
+    padding: 22,
     borderRadius: RADII.lg,
-    backgroundColor: COLORS.navyDark,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    overflow: 'hidden',
+    backgroundColor: COLORS.surface,
   },
-  sectionTitle: { color: COLORS.white, fontFamily: TYPOGRAPHY.title, fontSize: 17, lineHeight: 22, fontWeight: '800' },
+  sectionTitle: { color: COLORS.white, fontFamily: TYPOGRAPHY.title, fontSize: 20, lineHeight: 26, fontWeight: '700' },
   sectionCopy: { flex: 1, minWidth: 240, gap: 4 },
-  muted: { color: COLORS.muted, fontSize: 13, lineHeight: 19 },
+  muted: { color: COLORS.muted, fontSize: 13.5, lineHeight: 20 },
   trackList: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
-  trackListCompact: { gap: 0 },
+  trackListCompact: { flexDirection: 'column', flexWrap: 'nowrap', gap: 6 },
   trackCard: {
     minWidth: 220,
     flexGrow: 1,
-    padding: SPACING.md,
+    padding: 14,
     borderRadius: RADII.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.black,
+    backgroundColor: COLORS.inset,
   },
-  trackCardSelected: { borderColor: COLORS.gold, backgroundColor: COLORS.navy },
-  trackCardCompact: { minWidth: '100%', paddingHorizontal: 0, paddingVertical: 12, borderRadius: 0, borderWidth: 0, borderTopWidth: 1, borderTopColor: COLORS.border, backgroundColor: 'transparent' },
-  trackTitle: { color: COLORS.white, fontWeight: '800', fontSize: 15 },
-  modeSwitch: { alignSelf: 'flex-start', flexDirection: 'row', gap: 4, padding: 4, borderRadius: RADII.pill, backgroundColor: COLORS.black, borderWidth: 1, borderColor: COLORS.border },
-  modeButton: { minHeight: 40, minWidth: 116, alignItems: 'center', justifyContent: 'center', paddingHorizontal: SPACING.md, borderRadius: RADII.pill },
+  trackCardSelected: { backgroundColor: COLORS.goldSoft },
+  trackCardCompact: { minWidth: 0, width: '100%', flexGrow: 0, paddingVertical: 12 },
+  trackTitle: { color: COLORS.white, fontFamily: TYPOGRAPHY.title, fontWeight: '700', fontSize: 16 },
+  modeSwitch: { alignSelf: 'flex-start', flexDirection: 'row', flexWrap: 'wrap', gap: 4, padding: 4, borderRadius: 22, backgroundColor: COLORS.inset },
+  modeButton: { minHeight: 38, minWidth: 116, alignItems: 'center', justifyContent: 'center', paddingHorizontal: SPACING.md, borderRadius: RADII.pill },
   modeButtonSelected: { backgroundColor: COLORS.gold },
-  modeButtonText: { color: COLORS.muted, fontFamily: TYPOGRAPHY.body, fontSize: 13, fontWeight: '800' },
-  modeButtonTextSelected: { color: COLORS.black },
+  modeButtonText: { color: COLORS.muted, fontFamily: TYPOGRAPHY.title, fontSize: 14.5, fontWeight: '700' },
+  modeButtonTextSelected: { color: COLORS.greenDeep },
 
   languageChips: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
   languageChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 9,
     borderRadius: RADII.pill,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.black,
+    backgroundColor: COLORS.inset,
   },
-  languageChipSelected: { borderColor: COLORS.gold, backgroundColor: COLORS.navy },
-  languageChipText: { color: COLORS.muted, fontWeight: '700', fontSize: 13 },
+  languageChipSelected: { backgroundColor: COLORS.goldSoft },
+  languageChipText: { color: COLORS.muted, fontWeight: '600', fontSize: 13.5 },
   languageChipTextSelected: { color: COLORS.white },
   checkbox: {
     width: 18,
     height: 18,
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: COLORS.goldLine,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxSelected: { backgroundColor: COLORS.gold, borderColor: COLORS.gold },
-  checkboxMark: { color: COLORS.black, fontWeight: '900', fontSize: 12, lineHeight: 14 },
-  languageState: { color: COLORS.muted, fontSize: 10, fontWeight: '800' },
-  languageStatePublished: { color: COLORS.goldBright },
+  checkboxMark: { color: COLORS.greenDeep, fontWeight: '900', fontSize: 12, lineHeight: 14 },
+  languageState: { color: COLORS.faint, fontSize: 10.5, fontWeight: '700' },
+  languageStatePublished: { color: COLORS.gold },
 
   languagePasteGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.md, alignItems: 'stretch' },
   languagePasteCard: {
@@ -1200,9 +1208,7 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
     padding: SPACING.md,
     borderRadius: RADII.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.black,
+    backgroundColor: COLORS.inset,
   },
   languagePasteHeader: {
     flexDirection: 'row',
@@ -1211,15 +1217,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: SPACING.sm,
   },
-  languagePasteTitle: { color: COLORS.white, fontWeight: '900', fontSize: 15 },
-  publishedSmall: { color: COLORS.goldBright, fontSize: 10, fontWeight: '800', marginTop: 2 },
+  languagePasteTitle: { color: COLORS.white, fontFamily: TYPOGRAPHY.title, fontWeight: '700', fontSize: 16 },
+  publishedSmall: { color: COLORS.gold, fontSize: 10.5, fontWeight: '700', marginTop: 2 },
   pasteBox: {
     minHeight: 160,
     textAlignVertical: 'top',
-    borderRadius: RADII.md,
+    borderRadius: RADII.sm,
     borderWidth: 1,
-    borderColor: COLORS.border,
-    padding: SPACING.md,
+    borderColor: COLORS.hairline,
+    padding: 14,
     color: COLORS.white,
     backgroundColor: COLORS.surface,
   },
@@ -1228,13 +1234,13 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     borderRadius: RADII.sm,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: COLORS.hairline,
     color: COLORS.white,
     paddingHorizontal: 12,
     paddingVertical: 9,
     backgroundColor: COLORS.surface,
   },
-  readOnly: { opacity: 0.65, backgroundColor: COLORS.navyDark },
+  readOnly: { opacity: 0.6 },
   arabic: { fontFamily: TYPOGRAPHY.arabic, textAlign: 'right', writingDirection: 'rtl' },
   coptic: { fontFamily: TYPOGRAPHY.coptic },
 
@@ -1248,41 +1254,45 @@ const styles = StyleSheet.create({
   inlineButtons: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   syncHeaderActions: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm, alignItems: 'center' },
   primaryButton: {
+    minHeight: 44,
+    justifyContent: 'center',
     backgroundColor: COLORS.gold,
     borderRadius: RADII.sm,
-    paddingHorizontal: 16,
-    paddingVertical: 11,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
     alignSelf: 'flex-start',
   },
-  primaryButtonText: { color: COLORS.black, fontWeight: '900' },
+  primaryButtonText: { color: COLORS.greenDeep, fontFamily: TYPOGRAPHY.title, fontWeight: '700', fontSize: 15.5 },
   secondaryButton: {
+    minHeight: 40,
+    justifyContent: 'center',
     borderWidth: 1,
-    borderColor: COLORS.gold,
+    borderColor: COLORS.goldLine,
     borderRadius: RADII.sm,
     paddingHorizontal: 14,
-    paddingVertical: 9,
+    paddingVertical: 8,
     alignSelf: 'flex-start',
   },
-  secondaryButtonText: { color: COLORS.goldBright, fontWeight: '800' },
+  secondaryButtonText: { color: COLORS.gold, fontFamily: TYPOGRAPHY.title, fontWeight: '700', fontSize: 14.5 },
   miniButton: {
     borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: RADII.sm,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
+    borderColor: COLORS.goldLine,
+    borderRadius: 8,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
   },
-  miniButtonText: { color: COLORS.goldBright, fontWeight: '800', fontSize: 10 },
+  miniButtonText: { color: COLORS.gold, fontWeight: '700', fontSize: 11 },
   addLineFull: {
     width: '100%',
     minHeight: 48,
     borderWidth: 1,
-    borderColor: COLORS.gold,
-    borderRadius: RADII.sm,
+    borderStyle: 'dashed',
+    borderColor: COLORS.goldLine,
+    borderRadius: RADII.md,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.black,
   },
-  addLineFullText: { color: COLORS.goldBright, fontWeight: '900', fontSize: 14 },
+  addLineFullText: { color: COLORS.gold, fontFamily: TYPOGRAPHY.title, fontWeight: '700', fontSize: 15 },
   publishFooter: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1290,16 +1300,14 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     gap: SPACING.md,
   },
-  autosaveNote: { flex: 1, minWidth: 220, color: COLORS.muted, fontSize: 12, textAlign: 'right' },
+  autosaveNote: { flex: 1, minWidth: 220, color: COLORS.faint, fontSize: 12.5, textAlign: 'right' },
   disabledButton: { opacity: 0.35 },
 
   playbackCard: {
     gap: SPACING.md,
     padding: SPACING.md,
     borderRadius: RADII.md,
-    backgroundColor: COLORS.navyDark,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: COLORS.inset,
   },
   playerTop: {
     flexDirection: 'row',
@@ -1309,56 +1317,57 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   playerText: { gap: 3 },
-  playbackTitle: { color: COLORS.white, fontSize: 15, fontWeight: '900' },
-  timeText: { color: COLORS.goldBright, fontSize: 14, fontWeight: '800', fontVariant: ['tabular-nums'] },
-  syncCount: { color: COLORS.muted, fontSize: 12, fontWeight: '800' },
+  playbackTitle: { color: COLORS.white, fontFamily: TYPOGRAPHY.title, fontSize: 16, fontWeight: '700' },
+  timeText: { color: COLORS.gold, fontSize: 14, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  syncCount: { color: COLORS.faint, fontSize: 12.5, fontWeight: '600' },
   timeline: {
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: COLORS.black,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.hairline,
     overflow: 'hidden',
   },
   timelineProgress: { height: '100%', backgroundColor: COLORS.gold },
   playerActions: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: SPACING.sm },
   playButton: {
     minWidth: 92,
+    minHeight: 40,
+    justifyContent: 'center',
     backgroundColor: COLORS.gold,
-    borderRadius: RADII.sm,
+    borderRadius: RADII.pill,
     paddingHorizontal: 18,
-    paddingVertical: 10,
+    paddingVertical: 9,
     alignItems: 'center',
   },
-  playButtonText: { color: COLORS.black, fontWeight: '900' },
+  playButtonText: { color: COLORS.greenDeep, fontFamily: TYPOGRAPHY.title, fontWeight: '700', fontSize: 15 },
   markNextButton: {
+    minHeight: 40,
+    justifyContent: 'center',
     backgroundColor: COLORS.gold,
     borderRadius: RADII.sm,
     paddingHorizontal: 18,
-    paddingVertical: 10,
+    paddingVertical: 9,
     marginLeft: 'auto',
   },
-  markNextText: { color: COLORS.black, fontWeight: '900' },
+  markNextText: { color: COLORS.greenDeep, fontFamily: TYPOGRAPHY.title, fontWeight: '700', fontSize: 15 },
   lines: { gap: SPACING.sm },
   emptySync: { gap: SPACING.sm, alignItems: 'flex-start' },
   textButton: { paddingHorizontal: 8, paddingVertical: 6 },
-  textButtonText: { color: COLORS.goldBright, fontWeight: '800', fontSize: 12 },
+  textButtonText: { color: COLORS.gold, fontWeight: '700', fontSize: 12.5 },
 
   preview: { gap: SPACING.sm, paddingVertical: SPACING.sm },
   previewRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: SPACING.sm,
-    padding: SPACING.sm,
+    padding: 12,
     borderRadius: RADII.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    opacity: 0.65,
+    backgroundColor: COLORS.inset,
+    opacity: 0.6,
   },
-  previewRowActive: { opacity: 1, borderColor: COLORS.gold, backgroundColor: COLORS.surface },
+  previewRowActive: { opacity: 1, backgroundColor: COLORS.goldSoft },
   previewLanguage: { flexGrow: 1, flexBasis: 220, minWidth: 180, gap: 3 },
-  previewLanguageLabel: { color: COLORS.goldBright, fontSize: 10, fontWeight: '800' },
+  previewLanguageLabel: { color: COLORS.gold, fontSize: 10.5, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
   previewLine: { color: COLORS.muted, fontFamily: TYPOGRAPHY.body, fontSize: 17, lineHeight: 25 },
-  previewActive: { color: COLORS.white, fontWeight: '800' },
-  error: { color: '#FF8B8B', fontWeight: '700' },
+  previewActive: { color: COLORS.white, fontWeight: '700' },
+  error: { color: COLORS.danger, fontWeight: '700' },
 });
