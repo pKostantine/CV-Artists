@@ -8,6 +8,7 @@ The concept is similar to platforms such as **Spotify for Artists** and **Apple 
 
 ---
 
+
 ## About the App
 
 Coptic Vine Artists is separate from the main Coptic Vine listener experience.
