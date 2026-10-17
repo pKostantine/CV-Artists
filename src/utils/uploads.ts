@@ -119,6 +119,9 @@ export async function runUpload(
     uploaded: Boolean(uploadIntentId),
     uploadIntentId,
     error: undefined,
+    paused: false,
+    uploadBytesPerSecond: undefined,
+    uploadSecondsLeft: undefined,
     progress: uploadIntentId ? 0.97 : 0,
   });
 
@@ -131,25 +134,38 @@ export async function runUpload(
     }
 
     if (!uploadIntentId) {
-      uploadIntentId = await creatorService.upload(accountId, file, (progress) => {
-        patch(file.id, { progress: Math.min(progress * 0.96, 0.96), uploading: true });
-      });
-      patch(file.id, { uploadIntentId, uploaded: true, progress: 0.97, uploading: true });
+      uploadIntentId = await creatorService.upload(
+        accountId,
+        file,
+        (progress) => {
+          patch(file.id, { progress: Math.min(progress * 0.96, 0.96), uploading: true });
+        },
+        (stats) => {
+          patch(file.id, { uploadBytesPerSecond: stats.bytesPerSecond, uploadSecondsLeft: stats.secondsLeft });
+        },
+      );
+      patch(file.id, { uploadIntentId, uploaded: true, progress: 0.97, uploading: true, uploadBytesPerSecond: undefined, uploadSecondsLeft: undefined });
     }
 
-    // Both jobs reuse the one existing R2 video; nothing is retransferred
-    // merely because an audio-only or delivery processing RPC failed.
+    // The video's conversion and its audio-only copy both read the one stored
+    // original; nothing is retransferred because a processing request failed.
     await creatorService.enqueueUploadProcessing(uploadIntentId, file.mediaType, mode);
     patch(file.id, { uploadIntentId, uploaded: true, uploading: false, progress: 1, error: undefined });
   } catch (error) {
     const detail = creatorService.describeError(error);
+    const paused = !uploadIntentId && typeof error === 'object' && error !== null
+      && (error as { code?: string }).code === 'upload_paused';
     patch(file.id, {
       uploading: false,
       uploaded: Boolean(uploadIntentId),
       uploadIntentId,
-      progress: uploadIntentId ? 0.97 : 0,
+      paused,
+      uploadBytesPerSecond: undefined,
+      uploadSecondsLeft: undefined,
+      // A paused upload keeps its place; the bar shows how far it got.
+      ...(paused ? {} : { progress: uploadIntentId ? 0.97 : 0 }),
       error: uploadIntentId
-        ? `Original video is safely uploaded. Processing could not be started: ${detail}. Press Retry; the video will not be re-uploaded.`
+        ? `Your file is safely uploaded. Processing could not be started: ${detail}. Press Retry; the file will not be uploaded again.`
         : detail,
     });
   }

@@ -2,6 +2,17 @@ import { Platform } from 'react-native';
 import { File as ExpoFile } from 'expo-file-system';
 import { supabase } from '@/services/supabase';
 import { createUploadAuth } from '@/utils/uploadAuth';
+import {
+  clearResumable,
+  isRetryableStatus,
+  loadResumable,
+  planParts,
+  resumeKey,
+  retryDelayMs,
+  saveResumable,
+  SpeedMeter,
+  type ResumableUpload,
+} from '@/utils/multipartPlan';
 import { preferredLocalizedTitle, releaseTypeForTrackCount } from '@/utils/titles';
 import type {
   CatalogOption,
@@ -165,11 +176,172 @@ async function putBlob(
   }
 }
 
-async function uploadMultipart(
-  uploadIntentId: string,
+export interface UploadStats {
+  bytesPerSecond: number;
+  secondsLeft?: number;
+}
+
+// Parts in flight at once. Enough to keep a fast connection full while one
+// part waits on storage; the server may ask for fewer.
+const MAX_PARALLEL_PARTS = 6;
+const PART_ATTEMPTS = 10;
+
+function statusOf(error: unknown): number {
+  return typeof error === 'object' && error && 'status' in error ? Number((error as { status?: number }).status) || 0 : 0;
+}
+
+/** Resolves once the browser is back online (or after `maxMs`); at once elsewhere. */
+function waitForOnline(maxMs: number): Promise<void> {
+  const nav = (globalThis as { navigator?: { onLine?: boolean } }).navigator;
+  const win = globalThis as unknown as { addEventListener?: Function; removeEventListener?: Function };
+  if (!nav || nav.onLine !== false || typeof win.addEventListener !== 'function') return Promise.resolve();
+  return new Promise((resolve) => {
+    const done = () => {
+      win.removeEventListener?.('online', done);
+      clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(done, maxMs);
+    win.addEventListener!('online', done);
+  });
+}
+
+class ResumeUnavailableError extends Error {
+  readonly code = 'resume_unavailable';
+}
+
+/**
+ * Sends every part not yet stored, then completes the upload. The parts
+ * already stored are remembered after each one, so an upload that stops for
+ * any reason continues from there on Retry (or when the same file is chosen
+ * again after a reload) instead of starting over.
+ */
+async function uploadRemainingParts(
+  key: string,
+  saved: ResumableUpload,
   blob: Blob,
   onProgress: (value: number) => void,
+  onStats?: (stats: UploadStats) => void,
+  maxParallel = MAX_PARALLEL_PARTS,
 ): Promise<void> {
+  const { uploadIntentId, uploadId, partSize } = saved;
+  const partCount = Math.max(1, Math.ceil(blob.size / partSize));
+  const sizeOf = (partNumber: number) => Math.min(partSize, blob.size - (partNumber - 1) * partSize);
+  const loadedByPart = new Map<number, number>();
+  for (const partNumber of Object.keys(saved.parts).map(Number)) loadedByPart.set(partNumber, sizeOf(partNumber));
+  const meter = new SpeedMeter();
+
+  const report = () => {
+    let uploaded = 0;
+    for (const value of loadedByPart.values()) uploaded += value;
+    onProgress(0.12 + Math.min(1, uploaded / blob.size) * 0.84);
+    const bytesPerSecond = meter.sample(uploaded);
+    if (bytesPerSecond > 0) onStats?.({ bytesPerSecond, secondsLeft: meter.secondsLeft(blob.size - uploaded) });
+  };
+  report();
+
+  const pending: number[] = [];
+  for (let partNumber = 1; partNumber <= partCount; partNumber += 1) {
+    if (!saved.parts[String(partNumber)]) pending.push(partNumber);
+  }
+
+  async function uploadOne(partNumber: number): Promise<void> {
+    const start = (partNumber - 1) * partSize;
+    const chunk = blob.slice(start, start + sizeOf(partNumber));
+    const endpoint = `${UPLOAD_BASE}/uploads/${uploadIntentId}/multipart/${encodeURIComponent(uploadId)}/parts/${partNumber}`;
+
+    let lastError: unknown = null;
+    for (let attempt = 1; attempt <= PART_ATTEMPTS; attempt += 1) {
+      try {
+        const responseText = await putBlob(endpoint, chunk, 'application/octet-stream', (loaded) => {
+          loadedByPart.set(partNumber, Math.min(loaded, chunk.size));
+          report();
+        });
+        const body = JSON.parse(responseText || '{}') as MultipartPart;
+        if (!body.etag || body.partNumber !== partNumber) {
+          throw new Error(`Coptic Vine returned an invalid response for part ${partNumber}.`);
+        }
+        saved.parts[String(partNumber)] = body.etag;
+        saved.savedAt = Date.now();
+        saveResumable(key, saved);
+        loadedByPart.set(partNumber, chunk.size);
+        report();
+        return;
+      } catch (error) {
+        lastError = error;
+        loadedByPart.delete(partNumber);
+        const status = statusOf(error);
+        // The authorization ran out or the upload no longer exists: start over.
+        if (status === 404 || status === 410) throw new ResumeUnavailableError('This upload can no longer be resumed.');
+        if (!isRetryableStatus(status) || attempt === PART_ATTEMPTS) break;
+        await waitForOnline(5 * 60_000);
+        await sleep(retryDelayMs(attempt));
+      }
+    }
+    throw lastError instanceof Error ? lastError : new Error(`Part ${partNumber} failed to upload.`);
+  }
+
+  let next = 0;
+  let stop: unknown = null;
+  async function worker() {
+    while (!stop && next < pending.length) {
+      const partNumber = pending[next];
+      next += 1;
+      try {
+        await uploadOne(partNumber);
+      } catch (error) {
+        stop ??= error;
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.max(1, Math.min(maxParallel, pending.length)) }, () => worker()));
+  if (stop) {
+    if (stop instanceof ResumeUnavailableError) throw stop;
+    const done = Object.keys(saved.parts).length;
+    const percent = Math.floor((done / partCount) * 100);
+    throw Object.assign(
+      new Error(`The upload stopped at ${percent}% (${creatorService.describeError(stop)}). Press Retry to continue from where it stopped.`),
+      { code: 'upload_paused' },
+    );
+  }
+
+  onProgress(0.96);
+  const parts = Array.from({ length: partCount }, (_, index) => ({
+    partNumber: index + 1,
+    etag: saved.parts[String(index + 1)],
+  }));
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
+    const complete = await uploadAuth.authorizedFetch(
+      `${UPLOAD_BASE}/uploads/${uploadIntentId}/multipart/${encodeURIComponent(uploadId)}/complete`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ parts }),
+      },
+    ).catch((error: unknown) => {
+      lastError = error;
+      return null;
+    });
+    if (complete?.ok) {
+      clearResumable(key);
+      onProgress(1);
+      return;
+    }
+    if (complete) {
+      lastError = await responseFailure(complete, 'Could not finish multipart upload');
+      if (!isRetryableStatus(complete.status)) {
+        // The server discards a failed completion's object; nothing to resume.
+        clearResumable(key);
+        throw lastError;
+      }
+    }
+    await sleep(retryDelayMs(attempt));
+  }
+  throw lastError instanceof Error ? lastError : new Error('Could not finish multipart upload.');
+}
+
+async function startMultipart(uploadIntentId: string): Promise<{ uploadId: string; partSize?: number; maxPartSize?: number; maxParallel?: number }> {
   const create = await uploadAuth.authorizedFetch(`${UPLOAD_BASE}/uploads/${uploadIntentId}/multipart`, {
     method: 'POST',
   });
@@ -179,99 +351,9 @@ async function uploadMultipart(
     }
     throw await responseFailure(create, 'Could not start multipart upload');
   }
-
-  const setup = await create.json() as {
-    uploadId?: string;
-    partSize?: number;
-    maxParallel?: number;
-  };
+  const setup = await create.json() as { uploadId?: string; partSize?: number; maxPartSize?: number; maxParallel?: number };
   if (!setup.uploadId) throw new Error('Multipart upload did not return an upload ID.');
-
-  const uploadId = setup.uploadId;
-  const partSize = Math.max(5 * 1024 * 1024, Number(setup.partSize) || 32 * 1024 * 1024);
-  const partCount = Math.ceil(blob.size / partSize);
-  const parallel = Math.max(1, Math.min(6, Number(setup.maxParallel) || 4));
-  const loadedByPart = Array.from({ length: partCount }, () => 0);
-  const completedParts: MultipartPart[] = Array.from({ length: partCount });
-
-  function reportPartProgress(index: number, loaded: number) {
-    loadedByPart[index] = Math.max(loadedByPart[index], Math.min(loaded, partSize));
-    const uploaded = loadedByPart.reduce((sum, value) => sum + value, 0);
-    onProgress(0.12 + Math.min(1, uploaded / blob.size) * 0.82);
-  }
-
-  async function uploadOne(index: number): Promise<void> {
-    const start = index * partSize;
-    const end = Math.min(blob.size, start + partSize);
-    const chunk = blob.slice(start, end);
-    const partNumber = index + 1;
-    const endpoint = `${UPLOAD_BASE}/uploads/${uploadIntentId}/multipart/${encodeURIComponent(uploadId)}/parts/${partNumber}`;
-
-    let lastError: unknown = null;
-    for (let attempt = 0; attempt < 4; attempt += 1) {
-      try {
-        const responseText = await putBlob(
-          endpoint,
-          chunk,
-          'application/octet-stream',
-          (loaded) => reportPartProgress(index, loaded),
-        );
-        const body = JSON.parse(responseText || '{}') as MultipartPart;
-        if (!body.etag || body.partNumber !== partNumber) {
-          throw new Error(`Coptic Vine returned an invalid response for part ${partNumber}.`);
-        }
-        loadedByPart[index] = chunk.size;
-        completedParts[index] = body;
-        reportPartProgress(index, chunk.size);
-        return;
-      } catch (error) {
-        lastError = error;
-        const status = typeof error === 'object' && error && 'status' in error
-          ? Number((error as { status?: number }).status)
-          : 0;
-        const retryable = status === 0 || status === 408 || status === 409 || status === 425 || status === 429 || status >= 500;
-        if (!retryable || attempt === 3) break;
-        await sleep(400 * 2 ** attempt);
-      }
-    }
-    throw lastError instanceof Error ? lastError : new Error(`Part ${partNumber} failed to upload.`);
-  }
-
-  let nextPart = 0;
-  async function worker() {
-    while (true) {
-      const index = nextPart;
-      nextPart += 1;
-      if (index >= partCount) return;
-      await uploadOne(index);
-    }
-  }
-
-  try {
-    await Promise.all(Array.from({ length: Math.min(parallel, partCount) }, () => worker()));
-    onProgress(0.96);
-
-    const complete = await uploadAuth.authorizedFetch(
-      `${UPLOAD_BASE}/uploads/${uploadIntentId}/multipart/${encodeURIComponent(uploadId)}/complete`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ parts: completedParts }),
-      },
-    );
-    if (!complete.ok) throw await responseFailure(complete, 'Could not finish multipart upload');
-    onProgress(1);
-  } catch (error) {
-    await uploadAuth.authorizedFetch(
-      `${UPLOAD_BASE}/uploads/${uploadIntentId}/multipart/${encodeURIComponent(uploadId)}`,
-      {
-        method: 'DELETE',
-      },
-    ).catch(() => undefined);
-    throw error;
-  }
+  return { ...setup, uploadId: setup.uploadId };
 }
 
 /** The upload worker answers with {"error": code, "message": text}. */
@@ -562,7 +644,12 @@ export const creatorService = {
     await rpc('submit_media_submission', { p_submission_id: id });
   },
 
-  async upload(accountId: string, file: UploadCandidate, onProgress: (value: number) => void): Promise<string> {
+  async upload(
+    accountId: string,
+    file: UploadCandidate,
+    onProgress: (value: number) => void,
+    onStats?: (stats: UploadStats) => void,
+  ): Promise<string> {
     await uploadAuth.getToken();
     onProgress(0.02);
 
@@ -589,6 +676,27 @@ export const creatorService = {
     const contentType = contentTypeFor(file, blob);
     onProgress(0.06);
 
+    const multipart = blob.size >= MULTIPART_THRESHOLD_BYTES;
+    const key = resumeKey(accountId, {
+      name: file.name,
+      size: blob.size,
+      lastModified: Number(file.sourceFile?.lastModified) || undefined,
+    });
+
+    // A large upload that stopped earlier continues where it left off.
+    if (multipart) {
+      const saved = loadResumable(key);
+      if (saved) {
+        try {
+          await uploadRemainingParts(key, saved, blob, onProgress, onStats);
+          return saved.uploadIntentId;
+        } catch (error) {
+          if (!(error instanceof ResumeUnavailableError)) throw error;
+          clearResumable(key);
+        }
+      }
+    }
+
     const authorize = await uploadAuth.authorizedFetch(`${UPLOAD_BASE}/uploads/authorize`, {
       method: 'POST',
       headers: {
@@ -609,33 +717,34 @@ export const creatorService = {
     if (!id) throw new Error('Upload authorization did not return an upload ID.');
     onProgress(0.12);
 
-    if (blob.size >= MULTIPART_THRESHOLD_BYTES) {
+    if (multipart) {
+      let setup: Awaited<ReturnType<typeof startMultipart>> | null = null;
       try {
-        await uploadMultipart(id, blob, onProgress);
+        setup = await startMultipart(id);
       } catch (error) {
         const multipartUnavailable = typeof error === 'object' && error && 'code' in error
           && (error as { code?: string }).code === 'multipart_unavailable';
         if (!multipartUnavailable || blob.size > LEGACY_SAFE_SINGLE_PUT_BYTES) throw error;
-
-        // Safe rollout fallback while the upload Worker deployment catches up.
-        await putBlob(
-          `${UPLOAD_BASE}/uploads/${id}`,
-          blob,
-          contentType,
-          (loaded) => onProgress(0.12 + Math.min(1, loaded / blob.size) * 0.86),
-        );
-        onProgress(1);
       }
-    } else {
-      await putBlob(
-        `${UPLOAD_BASE}/uploads/${id}`,
-        blob,
-        contentType,
-        (loaded) => onProgress(0.12 + Math.min(1, loaded / blob.size) * 0.86),
-      );
-      onProgress(1);
+
+      if (setup) {
+        const { partSize } = planParts(blob.size, setup.partSize, setup.maxPartSize);
+        const saved: ResumableUpload = { uploadIntentId: id, uploadId: setup.uploadId, partSize, parts: {}, savedAt: Date.now() };
+        saveResumable(key, saved);
+        const parallel = Math.max(1, Math.min(MAX_PARALLEL_PARTS, Number(setup.maxParallel) || 4));
+        await uploadRemainingParts(key, saved, blob, onProgress, onStats, parallel);
+        return id;
+      }
     }
 
+    // Small files (and the rollout fallback while multipart catches up).
+    await putBlob(
+      `${UPLOAD_BASE}/uploads/${id}`,
+      blob,
+      contentType,
+      (loaded) => onProgress(0.12 + Math.min(1, loaded / blob.size) * 0.86),
+    );
+    onProgress(1);
     return id;
   },
 

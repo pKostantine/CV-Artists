@@ -158,6 +158,8 @@ export interface SubmissionItem {
   processingMaxAttempts: number | null;
   processingError: string | null;
   processingAvailableAt: string | null;
+  /** 0..1 while a worker is converting the file (absent before the heartbeat migration). */
+  processingProgress?: number | null;
 }
 
 export interface UploadCandidate {
@@ -174,6 +176,11 @@ export interface UploadCandidate {
   uploadIntentId?: string;
   uploaded?: boolean;
   error?: string;
+  /** A large upload that stopped part-way; Retry continues it. */
+  paused?: boolean;
+  /** Smoothed upload speed and estimate while uploading. */
+  uploadBytesPerSecond?: number;
+  uploadSecondsLeft?: number;
   /** Track metadata is intentionally independent of the uploaded filename. */
   title?: string;
   localizedTitle?: LocalizedMetadata;

@@ -47,11 +47,31 @@ export function fileSize(bytes: number): string {
   return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
 }
 
+function duration(seconds: number): string {
+  if (seconds < 60) return 'under a minute';
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest ? `${hours} h ${rest} min` : `${hours} h`;
+}
+
+function speed(bytesPerSecond: number): string {
+  const mb = bytesPerSecond / 1_000_000;
+  return mb >= 10 ? `${Math.round(mb)} MB/s` : `${mb.toFixed(1)} MB/s`;
+}
+
 export function uploadLabel(file: UploadCandidate): string {
   if (file.error && file.uploadIntentId) return 'Uploaded — processing retry needed';
+  if (file.error && file.paused) return `Upload paused at ${Math.floor(file.progress * 100)}% — Retry continues it`;
   if (file.error) return 'Upload failed';
   if (file.uploaded && file.uploadIntentId) return 'Uploaded';
-  if (file.uploading) return `Uploading ${Math.max(1, Math.round(file.progress * 100))}%`;
+  if (file.uploading) {
+    const parts = [`Uploading ${Math.max(1, Math.round(file.progress * 100))}%`];
+    if (file.uploadBytesPerSecond) parts.push(speed(file.uploadBytesPerSecond));
+    if (file.uploadSecondsLeft !== undefined) parts.push(`about ${duration(file.uploadSecondsLeft)} left`);
+    return parts.join(' · ');
+  }
   return 'Waiting to upload';
 }
 

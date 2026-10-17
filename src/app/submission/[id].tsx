@@ -20,6 +20,10 @@ function itemState(item: SubmissionItem): string {
     return `Retrying (attempt ${(item.processingAttemptCount ?? 0) + 1} of ${item.processingMaxAttempts ?? '?'})`;
   }
 
+  if (item.processingStatus === 'processing' && (item.processingProgress ?? 0) > 0) {
+    const label = item.mediaType === 'video' ? 'Converting video' : 'Processing';
+    return `${label} ${Math.min(99, Math.round((item.processingProgress ?? 0) * 100))}%`;
+  }
   if (item.processingStatus) return `Processing: ${statusLabel(item.processingStatus)}`;
   if (item.uploadStatus) return statusLabel(item.uploadStatus);
   return '—';
