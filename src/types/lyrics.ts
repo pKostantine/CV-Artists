@@ -19,6 +19,10 @@ export interface LyricEditorTrack {
   subtitle: string | null;
   durationMs: number | null;
   publicationStatus: string;
+  /** A lesson: its set, its place in it, and whether it is a video (it auditions by its sound alone). */
+  lessonSetId?: string | null;
+  lessonNumber?: number | null;
+  mediaType?: 'audio' | 'video' | null;
   mediaAsset: null | {
     id: string;
     provider: 'cloudflare_r2' | 'external';

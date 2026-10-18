@@ -22,11 +22,18 @@ export function resolveImageUrl(bucket: string, path: string, version?: string |
   return `${getBaseUrl()}/${segment}/${encoded}${cacheBust}`;
 }
 
+/**
+ * The sound the studio auditions a track by: a song's audio, a learning
+ * recording's, or a lesson's audio-only rendition (the catalogue sends that
+ * in place of the video). Both public media buckets resolve.
+ */
 export function resolveTrackAudio(track: LyricEditorTrack): string | null {
   const asset = track.mediaAsset;
   if (!asset) return null;
   if (asset.provider === 'external') return asset.path;
-  if (asset.provider !== 'cloudflare_r2' || asset.bucket !== 'chc-music') return null;
+  if (asset.provider !== 'cloudflare_r2') return null;
+  const segment = asset.bucket === 'chc-music' ? 'music' : asset.bucket === 'chc-learning' ? 'learning' : null;
+  if (!segment) return null;
 
   const path = asset.path
     .split('/')
@@ -34,5 +41,5 @@ export function resolveTrackAudio(track: LyricEditorTrack): string | null {
     .map(encodeURIComponent)
     .join('/');
 
-  return `${getBaseUrl()}/music/${path}`;
+  return `${getBaseUrl()}/${segment}/${path}`;
 }

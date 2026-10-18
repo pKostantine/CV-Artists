@@ -141,7 +141,7 @@ export default function SubmissionDetail() {
         </View>
       )}
 
-      {submission.submissionType === 'music_release' && (
+      {submission.submissionType === 'music_release' ? (
         <Card
           title="Lyrics"
           description="Lyrics are added after the music submission is created, not in the release description."
@@ -152,6 +152,24 @@ export default function SubmissionDetail() {
           <View style={uiStyles.actions}>
             <Button label="Open Lyrics Studio" onPress={() => router.push('/lyrics')} />
           </View>
+        </Card>
+      ) : (
+        <Card
+          title="Lyrics"
+          description={submission.submissionType === 'learning_lesson_set'
+            ? 'Each lesson can carry the hymn’s words, shown under the lesson in the app.'
+            : 'Each recording can carry its words, shown in the player.'}
+        >
+          <Text style={uiStyles.muted}>
+            {submission.status === 'published'
+              ? 'Open Lyrics Studio to add Coptic, Arabic, English, or French lyrics to each item. Lessons take unsynced lyrics; recordings can also be timed line by line.'
+              : 'Once Coptic Vine publishes this submission, its items appear in Lyrics Studio, where you can add Coptic, Arabic, English, or French lyrics to each.'}
+          </Text>
+          {submission.status === 'published' ? (
+            <View style={uiStyles.actions}>
+              <Button label="Open Lyrics Studio" onPress={() => router.push('/lyrics')} />
+            </View>
+          ) : null}
         </Card>
       )}
 

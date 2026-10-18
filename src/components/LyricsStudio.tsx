@@ -105,6 +105,17 @@ function draftRows(drafts: Record<string, LyricDraft | null>): EditableMultiling
   });
 }
 
+/** A duration as a clock reads it: 2:35, or 1:02:35 for an hour-long lesson. */
+function formatClock(durationMs: number): string {
+  const total = Math.max(0, Math.round(durationMs / 1000));
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const seconds = total % 60;
+  return hours
+    ? `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+    : `${minutes}:${String(seconds).padStart(2, '0')}`;
+}
+
 function editableLinesForLocale(
   rows: EditableMultilingualLyricRow[],
   locale: LocaleCode,
@@ -709,10 +720,10 @@ export function LyricsStudio() {
               >
                 <Text style={styles.trackTitle}>{track.title}</Text>
                 <Text style={styles.muted}>
-                  {track.targetType === 'music_track' ? 'Music' : track.targetType === 'learning_album_recording' ? 'Learning album' : 'Lesson set'}
+                  {track.targetType === 'music_track' ? 'Music' : track.targetType === 'learning_album_recording' ? 'Learning album' : track.mediaType === 'video' ? 'Video lesson' : 'Lesson'}
                   {' · '}{track.subtitle ?? 'Coptic Vine'}{' · '}
                   {track.publicationStatus}
-                  {track.durationMs ? ` · ${(track.durationMs / 1_000).toFixed(1)}s` : ''}
+                  {track.durationMs ? ` · ${formatClock(track.durationMs)}` : ''}
                 </Text>
               </Pressable>
             ))}
@@ -725,28 +736,24 @@ export function LyricsStudio() {
           <Text style={styles.muted}>
             Unsynced lyrics read as a continuous text. Synced lyrics follow playback line by line.
           </Text>
-          <View style={styles.modeSwitch}>
-            <Pressable
-              onPress={() => changeSyncPrecision('unsynced')}
-              style={[styles.modeButton, syncPrecision === 'unsynced' && styles.modeButtonSelected]}
-            >
-              <Text style={[styles.modeButtonText, syncPrecision === 'unsynced' && styles.modeButtonTextSelected]}>Unsynced</Text>
-            </Pressable>
-            <Pressable
-              disabled={selectedTrack?.maxSyncPrecision === 'unsynced'}
-              onPress={() => changeSyncPrecision('line')}
-              style={[
-                styles.modeButton,
-                syncPrecision === 'line' && styles.modeButtonSelected,
-                selectedTrack?.maxSyncPrecision === 'unsynced' && styles.disabledButton,
-              ]}
-            >
-              <Text style={[styles.modeButtonText, syncPrecision === 'line' && styles.modeButtonTextSelected]}>Synced</Text>
-            </Pressable>
-          </View>
           {selectedTrack?.maxSyncPrecision === 'unsynced' ? (
-            <Text style={styles.muted}>Lesson sets use unsynced lyrics because each item is an instructional lesson rather than a hymn recording.</Text>
-          ) : null}
+            <Text style={styles.muted}>Lessons use unsynced lyrics: the words are shown as a whole under the lesson, in the order below.</Text>
+          ) : (
+            <View style={styles.modeSwitch}>
+              <Pressable
+                onPress={() => changeSyncPrecision('unsynced')}
+                style={[styles.modeButton, syncPrecision === 'unsynced' && styles.modeButtonSelected]}
+              >
+                <Text style={[styles.modeButtonText, syncPrecision === 'unsynced' && styles.modeButtonTextSelected]}>Unsynced</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => changeSyncPrecision('line')}
+                style={[styles.modeButton, syncPrecision === 'line' && styles.modeButtonSelected]}
+              >
+                <Text style={[styles.modeButtonText, syncPrecision === 'line' && styles.modeButtonTextSelected]}>Synced</Text>
+              </Pressable>
+            </View>
+          )}
         </View>
 
         <View style={[styles.panel, compact && styles.panelCompact]}>
