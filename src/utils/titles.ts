@@ -46,6 +46,15 @@ export function hasMusicTitle(titles?: Partial<LocalizedMetadata> | null): boole
   return [titles.en, titles.ar, titles.fr].some((value) => Boolean(value?.trim()));
 }
 
+/**
+ * A music release or Learn album with one item is a single: the item has no
+ * title of its own and takes the release's (album's) in every language. Lesson
+ * sets number their lessons instead.
+ */
+export function takesReleaseTitle(mode: 'music' | 'learning_album' | 'learning_lesson_set', itemCount: number): boolean {
+  return itemCount === 1 && mode !== 'learning_lesson_set';
+}
+
 export function releaseTypeForTrackCount(trackCount: number): ReleaseType {
   if (trackCount <= 1) return 'single';
   if (trackCount <= 6) return 'ep';

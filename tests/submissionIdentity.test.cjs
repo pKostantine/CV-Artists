@@ -5,7 +5,8 @@ const fs = require('node:fs');
 const read = (name) => fs.readFileSync(name, 'utf8');
 
 test('learning albums and lesson sets share the music artist catalogue, without creation/type buttons', () => {
-  const submission = read('src/app/submission/new.tsx');
+  // The form and its shared Learn pickers.
+  const submission = read('src/app/submission/new.tsx') + read('src/components/LearningPickers.tsx');
   assert.doesNotMatch(submission, /Contributor type|Add new cantor|Add new chorus|create\('cantor'\)|create\('chorus'\)/);
   assert.match(submission, /kind="artist"/);
   assert.match(submission, /label="Artist \/ Cantor \/ Chorus"/);
@@ -30,7 +31,8 @@ test('all three modes can link existing identities by ID and search profile phot
 });
 
 test('learning albums and lesson sets share bilingual seasons and release-date controls', () => {
-  const form = read('src/app/submission/new.tsx');
+  // The form and its shared Learn pickers.
+  const form = read('src/app/submission/new.tsx') + read('src/components/LearningPickers.tsx');
   const service = read('src/services/creatorService.ts');
   assert.match(form, /titleArabic \? /);
   assert.match(form, /Liturgical season/);
@@ -41,7 +43,8 @@ test('learning albums and lesson sets share bilingual seasons and release-date c
 });
 
 test('new lesson-set hymns can be entered when the learning hymn catalog is empty', () => {
-  const form = read('src/app/submission/new.tsx');
+  // The submission form and the editor share the Learn pickers.
+  const form = read('src/components/LearningPickers.tsx');
   const service = read('src/services/creatorService.ts');
   assert.match(form, /function LearningHymnPicker/);
   assert.match(form, /No learning hymns yet/);
@@ -51,7 +54,8 @@ test('new lesson-set hymns can be entered when the learning hymn catalog is empt
 });
 
 test('credit IDs are retained when copying credits across tracks or updating releases', () => {
-  const form = read('src/app/submission/new.tsx');
+  // The form and its shared Learn pickers.
+  const form = read('src/app/submission/new.tsx') + read('src/components/LearningPickers.tsx');
   const release = read('src/app/release/[id].tsx');
   assert.match(form, /mainArtistId: source\.mainArtistId/);
   assert.match(release, /mainArtistId: source\.mainArtistId/);

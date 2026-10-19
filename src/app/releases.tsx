@@ -23,7 +23,10 @@ function ReleaseRow({ release }: { release: CreatorReleaseSummary }) {
   return (
     <RowCard
       accessibilityLabel={`Edit ${release.title}`}
-      onPress={() => router.push({ pathname: '/release/[id]', params: { id: release.id } })}
+      onPress={() => (release.submissionId
+        // The editor covers music and Learn alike; a release from before submissions has the older one.
+        ? router.push({ pathname: '/submission/edit/[id]', params: { id: release.submissionId, from: 'releases' } })
+        : router.push({ pathname: '/release/[id]', params: { id: release.id } }))}
     >
       <View style={styles.cover}>
         {artworkUrl ? (

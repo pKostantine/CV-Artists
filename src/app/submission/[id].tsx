@@ -1,15 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { MediaPreview } from '@/components/MediaPreview';
-import { FileSelectButton } from '@/components/FileSelectButton';
 import { Banner, Button, Card, Loading, Page, PageHeader, StatusPill, uiStyles } from '@/components/ui';
 import { COLORS, RADII, SPACING, TYPOGRAPHY } from '@/constants/theme';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import { creatorService } from '@/services/creatorService';
-import type { SubmissionItem, UploadCandidate } from '@/types/creator';
-import { fileSize, shortDate, statusDescription, statusLabel, submissionTypeLabel, uploadLabel } from '@/utils/format';
-import { runUpload, uploadsBlocking } from '@/utils/uploads';
+import type { SubmissionItem } from '@/types/creator';
+import { fileSize, shortDate, statusDescription, statusLabel, submissionTypeLabel } from '@/utils/format';
 
 function itemState(item: SubmissionItem): string {
   if (item.mediaAssetId) return 'Processed';
@@ -38,16 +35,12 @@ function itemRoleLabel(item: SubmissionItem): string {
 
 export default function SubmissionDetail() {
   const { id, submitted } = useLocalSearchParams<{ id: string; submitted?: string }>();
-  const { account, dashboard, loading, refresh } = useWorkspace();
+  const { dashboard, loading } = useWorkspace();
   const submission = dashboard.submissions.find((s) => s.id === id) ?? null;
 
   const [items, setItems] = useState<SubmissionItem[] | null>(null);
   const [itemsError, setItemsError] = useState('');
-  const [added, setAdded] = useState<UploadCandidate[]>([]);
-  const [previewId, setPreviewId] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [notice, setNotice] = useState(submitted ? 'Submitted. Your submission is now in Coptic Vine review.' : '');
+  const notice = submitted ? 'Submitted. Your submission is now in Coptic Vine review.' : '';
 
   const loadItems = useCallback(async () => {
     if (!id) return;
@@ -60,10 +53,6 @@ export default function SubmissionDetail() {
   }, [id]);
 
   useEffect(() => { void loadItems(); }, [loadItems]);
-
-  const patchAdded = useCallback((fileId: string, change: Partial<UploadCandidate>) => {
-    setAdded((current) => current.map((file) => (file.id === fileId ? { ...file, ...change } : file)));
-  }, []);
 
   if (!submission) {
     if (loading) return <Page><Loading label="Loading submission…" /></Page>;
@@ -79,49 +68,9 @@ export default function SubmissionDetail() {
   }
 
   const revising = submission.status === 'changes_requested';
-  const blocking = added.length ? uploadsBlocking(added) : 'Add at least one corrected file.';
-  const uploadMode = submission.submissionType === 'music_release'
-    ? 'music'
-    : submission.submissionType === 'learning_album'
-      ? 'learning_album'
-      : 'learning_lesson_set';
-
-  function addCorrectedFiles(picked: UploadCandidate[]) {
-    if (!account || !submission || !picked.length) return;
-    setError('');
-    setAdded((current) => [...current, ...picked]);
-    picked.forEach((file) => void runUpload(account.id, file, uploadMode, patchAdded));
-  }
-
-  async function resubmit() {
-    if (!submission || blocking) return;
-    setBusy(true);
-    setError('');
-    try {
-      // New files continue the existing ordering rather than renumbering from zero.
-      let order = items?.length ?? 0;
-      for (const file of added) {
-        await creatorService.attachUpload(
-          submission.id,
-          file.uploadIntentId!,
-          file.name,
-          order,
-          submission.submissionType === 'music_release' ? 'track' : 'lesson',
-        );
-        // Once attached, a retry must not attach it again.
-        setAdded((current) => current.filter((x) => x.id !== file.id));
-        order += 1;
-      }
-      await creatorService.submit(submission.id);
-      setNotice('Sent back for review. Coptic Vine has your updated submission.');
-      await Promise.all([refresh(), loadItems()]);
-    } catch (e) {
-      setError(creatorService.describeError(e));
-      void loadItems();
-    } finally {
-      setBusy(false);
-    }
-  }
+  // Everything sent can be edited, live or not, until it is rejected (SubmissionEditor).
+  const editable = submission.status !== 'rejected' && submission.status !== 'archived';
+  const openEditor = () => router.push({ pathname: '/submission/edit/[id]', params: { id: submission.id } });
 
   return (
     <Page>
@@ -130,6 +79,7 @@ export default function SubmissionDetail() {
         eyebrow={submissionTypeLabel(submission.submissionType)}
         title={submission.title}
         subtitle={`Created ${shortDate(submission.createdAt)}`}
+        action={editable ? <Button kind={revising ? 'primary' : 'secondary'} label={revising ? 'Edit and resubmit' : 'Edit submission'} onPress={openEditor} /> : undefined}
       />
 
       {!!notice && <Banner tone="success">{notice}</Banner>}
@@ -210,51 +160,15 @@ export default function SubmissionDetail() {
         )}
       </Card>
 
-      {revising && (
+      {editable && (
         <Card
-          title="Add corrected files"
-          description="Title and description cannot be changed after sending. Upload corrected media here, then send the submission back for review."
+          title={revising ? 'Make the requested changes' : 'Edit'}
+          description={submission.status === 'published'
+            ? 'Edit titles, details, credits, order and artwork, add or delete items, or give an item a new file. Titles, credits, order and deletions are live as soon as you save; new files and artwork are reviewed first.'
+            : 'Edit titles, details, credits, order and artwork, add or delete items, or give an item a new file. Saving sends it to Coptic Vine for review.'}
         >
           <View style={uiStyles.actions}>
-            <FileSelectButton
-              label={submission.submissionType === 'learning_lesson_set' ? 'Add lesson files' : 'Add audio files'}
-              kind={submission.submissionType === 'learning_lesson_set' ? 'lesson' : 'audio'}
-              multiple
-              onFiles={addCorrectedFiles}
-              onError={setError}
-            />
-          </View>
-
-          {added.map((file) => (
-            <View key={file.id}>
-              <View style={uiStyles.row}>
-                <View style={styles.fileText}>
-                  <Text style={uiStyles.rowTitle} numberOfLines={1}>{file.name}</Text>
-                  <Text style={file.error ? uiStyles.error : file.uploaded ? uiStyles.success : uiStyles.muted}>
-                    {fileSize(file.size)} • {uploadLabel(file)}
-                  </Text>
-                  {!!file.error && <Text style={uiStyles.errorDetail}>{file.error}</Text>}
-                </View>
-                <View style={styles.fileActions}>
-                  {!!file.error && account && (
-                    <Pressable onPress={() => void runUpload(account.id, file, uploadMode, patchAdded)}><Text style={uiStyles.link}>Retry</Text></Pressable>
-                  )}
-                  <Pressable onPress={() => setPreviewId(previewId === file.id ? null : file.id)}>
-                    <Text style={uiStyles.link}>{previewId === file.id ? 'Hide' : 'Preview'}</Text>
-                  </Pressable>
-                  <Pressable onPress={() => setAdded((current) => current.filter((x) => x.id !== file.id))}>
-                    <Text style={uiStyles.remove}>Remove</Text>
-                  </Pressable>
-                </View>
-              </View>
-              {previewId === file.id && <MediaPreview file={file} onClose={() => setPreviewId(null)} />}
-            </View>
-          ))}
-
-          {!!blocking && added.length > 0 && <Text style={uiStyles.muted}>{blocking}</Text>}
-          {!!error && <Banner tone="error">{error}</Banner>}
-          <View style={uiStyles.actions}>
-            <Button kind="primary" label={busy ? 'Resubmitting…' : 'Resubmit for review'} busy={busy} disabled={Boolean(blocking)} onPress={() => void resubmit()} />
+            <Button kind={revising ? 'primary' : 'secondary'} label={revising ? 'Edit and resubmit' : 'Edit submission'} onPress={openEditor} />
           </View>
         </Card>
       )}
@@ -271,5 +185,4 @@ const styles = StyleSheet.create({
   notesBody: { color: COLORS.white, fontSize: 14.5, lineHeight: 22 },
   fileText: { flex: 1, minWidth: 200, gap: 3 },
   itemError: { color: COLORS.danger, fontSize: 12.5, lineHeight: 18 },
-  fileActions: { flexDirection: 'row', alignItems: 'center', gap: 16 },
 });

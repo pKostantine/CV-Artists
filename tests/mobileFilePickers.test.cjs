@@ -23,8 +23,9 @@ test('The main Coptic Vine Artists upload entry points use the iPhone-safe picke
   const form = read('src/app/submission/new.tsx');
   const release = read('src/app/release/[id].tsx');
   const profile = read('src/app/profile.tsx');
-  const revision = read('src/app/submission/[id].tsx');
-  for (const source of [form, release, profile, revision]) {
+  // Corrections, new files and replacements are made in the submission editor.
+  const editor = read('src/components/SubmissionEditor.tsx');
+  for (const source of [form, release, profile, editor]) {
     assert.match(source, /<FileSelectButton/);
     assert.doesNotMatch(source, /pickUploadCandidates\(/);
   }
@@ -32,7 +33,9 @@ test('The main Coptic Vine Artists upload entry points use the iPhone-safe picke
   assert.match(form, /kind=\{draft\.mode === 'learning_lesson_set' \? 'lesson' : 'audio'\}/);
   assert.match(release, /kind="audio"/);
   assert.match(profile, /onFiles=\{\(picked\) => void changePicture\(picked\)\}/);
-  assert.match(revision, /onFiles=\{addCorrectedFiles\}/);
+  assert.match(editor, /onFiles=\{addFiles\}/);
+  assert.match(editor, /onFiles=\{\(picked\) => replaceFile\(item\.key, picked\)\}/);
+  assert.match(editor, /onFiles=\{receiveArtwork\}/);
 });
 
 test('Web input passes real browser File objects to upload, including iCloud filenames', () => {

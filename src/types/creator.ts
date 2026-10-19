@@ -225,3 +225,81 @@ export interface CreatorDraft {
   /** When it came out elsewhere, if it did. Wins over the Coptic Vine date on display. */
   originalReleaseDate: string;
 }
+
+/** Where a submission's file stands: processed, or its processing job's (or upload's) status. */
+export type EditorFileStatus = 'completed' | 'queued' | 'processing' | 'failed' | 'cancelled' | 'missing' | 'uploaded' | string;
+
+/** A track, recording or lesson as the submission editor shows it (get_submission_editor). */
+export interface SubmissionEditorItem {
+  /** Music: the track's ID. Learn: the submission item's. Sent back as `id` to keep it. */
+  id: string;
+  itemId: string | null;
+  title: string;
+  localizedTitles: { en: string; ar: string; fr: string };
+  durationMs: number | null;
+  publicationStatus: PublicationStatus;
+  mediaType: MediaKind | null;
+  fileName: string | null;
+  processingStatus: EditorFileStatus;
+  /** Music only. */
+  mainArtist?: { id: string; displayName: string; isIdentity: boolean } | null;
+  contributors?: { id: string; artistId: string; name: string; role: TrackContributorRole }[];
+  /** A new file waiting to replace this one's while it is live. */
+  replacement: { itemId: string; fileName: string | null; mediaType: MediaKind | null; processingStatus: EditorFileStatus } | null;
+}
+
+export interface SubmissionEditorState {
+  submissionId: string;
+  kind: 'music_release' | 'learning_album' | 'learning_lesson_set';
+  status: PublicationStatus;
+  reviewNotes: string | null;
+  creatorAccountId: string;
+  isAdmin: boolean;
+  canEdit: boolean;
+  earliestReleaseAt: string | null;
+  catalogId: string;
+  isLive: boolean;
+  publicationStatus: PublicationStatus;
+  title: string;
+  localizedTitles: { en: string; ar: string; fr: string };
+  description: string | null;
+  releaseType?: ReleaseType;
+  musicType?: string | null;
+  recordingType?: string | null;
+  seasonId?: string | null;
+  hymn?: { id: string; title: string } | null;
+  releaseTimingMode: ReleaseTimingMode;
+  scheduledReleaseAt: string | null;
+  originalReleaseDate: string | null;
+  /** Music: the release's artist. Learn: the artist, cantor or chorus, by their music.artists ID. */
+  artist: { id: string; displayName: string } | null;
+  items: SubmissionEditorItem[];
+  cover: { assetId: string; bucket: string; path: string; version?: number | string | null; isLive: boolean } | null;
+  pendingCover: { itemId: string; fileName: string | null; processingStatus: EditorFileStatus } | null;
+}
+
+/** One save from the editor (save_submission_edit): the whole state, in order. */
+export interface SubmissionEdit {
+  title: string;
+  localizedTitles: { en: string; ar: string; fr: string };
+  description: string | null;
+  musicType?: string | null;
+  recordingType?: string | null;
+  artistId?: string | null;
+  artistName?: string | null;
+  seasonId?: string | null;
+  hymnId?: string | null;
+  releaseTimingMode?: ReleaseTimingMode;
+  scheduledReleaseAt?: string | null;
+  originalReleaseDate?: string | null;
+  coverUploadIntentId?: string | null;
+  items: {
+    id?: string;
+    uploadIntentId?: string | null;
+    title: string;
+    localizedTitles: { en: string; ar: string; fr: string };
+    mainArtistName?: string | null;
+    mainArtistId?: string | null;
+    contributors?: { name: string; role: TrackContributorRole; artistId: string | null }[];
+  }[];
+}

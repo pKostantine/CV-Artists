@@ -13,7 +13,7 @@ import {
   SpeedMeter,
   type ResumableUpload,
 } from '@/utils/multipartPlan';
-import { preferredLocalizedTitle, releaseTypeForTrackCount } from '@/utils/titles';
+import { preferredLocalizedTitle, releaseTypeForTrackCount, takesReleaseTitle } from '@/utils/titles';
 import type {
   CatalogOption,
   CatalogOptions,
@@ -31,6 +31,8 @@ import type {
   TrackContributor,
   LocalizedMetadata,
   UploadCandidate,
+  SubmissionEdit,
+  SubmissionEditorState,
 } from '@/types/creator';
 
 const UPLOAD_BASE = process.env.EXPO_PUBLIC_UPLOAD_URL || 'https://cv-upload-authorizer.hrmpdd8d6c.workers.dev';
@@ -418,6 +420,23 @@ export const creatorService = {
     });
   },
 
+  /** A submission as its editor shows it: music or Learn, any status, live or not. */
+  editor(submissionId: string): Promise<SubmissionEditorState> {
+    return rpc<SubmissionEditorState>('get_submission_editor', { p_submission_id: submissionId });
+  },
+
+  /** Saves the editor's whole state; returns it as it now stands. */
+  saveEdit(submissionId: string, edit: SubmissionEdit): Promise<SubmissionEditorState> {
+    return rpc<SubmissionEditorState>('save_submission_edit', {
+      p_submission_id: submissionId,
+      p_edit: {
+        ...edit,
+        scheduledReleaseAt: edit.scheduledReleaseAt ? toIsoOrNull(edit.scheduledReleaseAt) : null,
+        originalReleaseDate: nullIfBlank(edit.originalReleaseDate ?? ''),
+      },
+    });
+  },
+
   items(submissionId: string): Promise<SubmissionItem[]> {
     return rpc<SubmissionItem[]>('get_creator_submission_items', { p_submission_id: submissionId });
   },
@@ -427,13 +446,17 @@ export const creatorService = {
     const isMusic = draft.mode === 'music';
     const releaseTitle = preferredLocalizedTitle(draft.localizedTitle) || draft.title.trim();
     const inferredReleaseType = releaseTypeForTrackCount(draft.media.length);
+    // A single's one track (or recording) is titled as its release.
+    const single = takesReleaseTitle(draft.mode, draft.media.length);
     const items = [
       ...(draft.artwork ? [{ uploadIntentId: draft.artwork.uploadIntentId, title: draft.artwork.name, role: 'artwork' }] : []),
       ...draft.media.map((file, index) => ({
         uploadIntentId: file.uploadIntentId,
         title: draft.mode === 'learning_lesson_set'
           ? `Lesson ${index + 1}`
-          : preferredLocalizedTitle(file.localizedTitle)
+          : single
+            ? releaseTitle
+            : preferredLocalizedTitle(file.localizedTitle)
             || file.title?.trim()
             || file.name.replace(/\.[^./]+$/, ''),
         role: 'media',
@@ -442,7 +465,7 @@ export const creatorService = {
         learningArtistName: isMusic ? null : (draft.learningArtistName.trim() || null),
         // Recording and lesson titles are independent of their parent title.
         // Preserve each language through processing and scheduled publishing.
-        localizedTitles: draft.mode === 'learning_lesson_set' ? {} : (file.localizedTitle ?? {}),
+        localizedTitles: draft.mode === 'learning_lesson_set' ? {} : single ? draft.localizedTitle : (file.localizedTitle ?? {}),
         // Explicitly selected profiles stay linked by UUID. Otherwise an
         // exact normalized name reuses a credit; a new name creates one.
         mainArtistName: isMusic ? (file.mainArtistName?.trim() || null) : null,
