@@ -154,12 +154,14 @@ function itemsFromState(state: SubmissionEditorState): EditorItem[] {
  * (save_submission_edit); the database decides what goes live and what goes
  * to review (supabase/migrations/20261019200000_edit_submissions_after_sending.sql).
  */
-export function SubmissionEditor({ submissionId, backLabel, onBack, onSaved, onDeleted }: {
+export function SubmissionEditor({ submissionId, backLabel, onBack, onSaved, onDeleted, allowDelete = true }: {
   submissionId: string;
   backLabel: string;
   onBack: () => void;
   onSaved?: (state: SubmissionEditorState) => void;
   onDeleted?: () => void;
+  /** Off where deleting the whole release has tools of its own (Coptic Vine Admin's Published). */
+  allowDelete?: boolean;
 }) {
   const [state, setState] = useState<SubmissionEditorState | null>(null);
   const [items, setItems] = useState<EditorItem[]>([]);
@@ -752,7 +754,7 @@ export function SubmissionEditor({ submissionId, backLabel, onBack, onSaved, onD
         </View>
       </Card>
 
-      {isMusic && (
+      {isMusic && allowDelete && (
         <Card
           eyebrow="Danger zone"
           title="Delete this release"
