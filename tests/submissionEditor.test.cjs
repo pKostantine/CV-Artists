@@ -37,3 +37,15 @@ test('every sent submission but a rejected one opens the editor, and Releases go
   assert.match(releases, /pathname: '\/submission\/edit\/\[id\]', params: \{ id: release\.submissionId, from: 'releases' \}/);
   assert.match(route, /<SubmissionEditor/);
 });
+
+test('artists delete their own submissions, live or not, from the editor and the submission page', () => {
+  const service = read('src/services/creatorService.ts');
+  const editor = read('src/components/SubmissionEditor.tsx');
+  const detail = read('src/app/submission/[id].tsx');
+  assert.match(service, /rpc\('delete_submission', \{ p_submission_id: submissionId \}\)/);
+  assert.match(editor, /await creatorService\.deleteSubmission\(state\.submissionId\);/);
+  // Every kind, and a rejected submission too (its read-only view keeps the danger zone).
+  assert.doesNotMatch(editor, /isMusic && allowDelete/);
+  assert.match(editor, /\{!!error && <Banner tone="error">\{error\}<\/Banner>\}\n\s+\{dangerZone\}\n\s+<\/Page>/);
+  assert.match(detail, /await creatorService\.deleteSubmission\(submission\.id\);/);
+});

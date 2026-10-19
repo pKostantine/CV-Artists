@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { confirmAction } from '@/utils/dialogs';
 import { StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Banner, Button, Card, Loading, Page, PageHeader, StatusPill, uiStyles } from '@/components/ui';
@@ -35,7 +36,9 @@ function itemRoleLabel(item: SubmissionItem): string {
 
 export default function SubmissionDetail() {
   const { id, submitted } = useLocalSearchParams<{ id: string; submitted?: string }>();
-  const { dashboard, loading } = useWorkspace();
+  const { dashboard, loading, refresh } = useWorkspace();
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const submission = dashboard.submissions.find((s) => s.id === id) ?? null;
 
   const [items, setItems] = useState<SubmissionItem[] | null>(null);
@@ -71,6 +74,28 @@ export default function SubmissionDetail() {
   // Everything sent can be edited, live or not, until it is rejected (SubmissionEditor).
   const editable = submission.status !== 'rejected' && submission.status !== 'archived';
   const openEditor = () => router.push({ pathname: '/submission/edit/[id]', params: { id: submission.id } });
+  const live = submission.status === 'published';
+
+  async function deleteSubmission() {
+    if (!submission) return;
+    if (!(await confirmAction(
+      live ? 'Delete this permanently?' : 'Withdraw and delete this submission?',
+      live
+        ? `"${submission.title}" and everything in it will be removed from Coptic Vine, with its files. This cannot be undone.`
+        : `"${submission.title}" will be deleted, with its files. This cannot be undone.`,
+      live ? 'Delete' : 'Withdraw and delete',
+    ))) return;
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await creatorService.deleteSubmission(submission.id);
+      await refresh();
+      router.replace('/');
+    } catch (cause) {
+      setDeleteError(creatorService.describeError(cause));
+      setDeleting(false);
+    }
+  }
 
   return (
     <Page>
@@ -172,6 +197,18 @@ export default function SubmissionDetail() {
           </View>
         </Card>
       )}
+      <Card
+        eyebrow="Danger zone"
+        title={live ? 'Delete' : submission.status === 'rejected' ? 'Delete this submission' : 'Withdraw and delete'}
+        description={live
+          ? 'Deleting permanently removes it, and everything in it, from Coptic Vine. To remove just one track, recording or lesson, edit the submission instead.'
+          : 'Deleting removes this submission and its files. Anything not yet live is withdrawn from review.'}
+      >
+        {!!deleteError && <Banner tone="error">{deleteError}</Banner>}
+        <View style={uiStyles.actions}>
+          <Button kind="danger" icon="trash-outline" label={deleting ? 'Deleting…' : live ? 'Delete' : 'Withdraw and delete'} busy={deleting} onPress={() => void deleteSubmission()} />
+        </View>
+      </Card>
     </Page>
   );
 }
