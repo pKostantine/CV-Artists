@@ -437,6 +437,11 @@ export const creatorService = {
     });
   },
 
+  /** Deletes a submission and everything it became, live or not (delete_submission). */
+  deleteSubmission(submissionId: string): Promise<{ submissionId: string; deleted: boolean; deletedTrackCount: number; deletedItemCount: number }> {
+    return rpc('delete_submission', { p_submission_id: submissionId });
+  },
+
   items(submissionId: string): Promise<SubmissionItem[]> {
     return rpc<SubmissionItem[]>('get_creator_submission_items', { p_submission_id: submissionId });
   },

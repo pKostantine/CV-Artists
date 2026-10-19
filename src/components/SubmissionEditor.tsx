@@ -429,17 +429,21 @@ export function SubmissionEditor({ submissionId, backLabel, onBack, onSaved, onD
     }
   }
 
-  async function deleteRelease() {
-    if (!state || !isMusic) return;
+  async function deleteSubmission() {
+    if (!state) return;
+    const noun = isMusic ? 'release' : isLessonSet ? 'lesson set' : 'album';
+    const contents = isMusic ? 'its tracks' : isLessonSet ? 'its lessons' : 'its recordings';
     if (!(await confirmAction(
-      'Delete this release permanently?',
-      `"${state.title}" and its tracks will be removed from the Coptic Vine music catalog. This cannot be undone.`,
-      'Delete release',
+      state.isLive ? `Delete this ${noun} permanently?` : 'Withdraw and delete this submission?',
+      state.isLive
+        ? `"${state.title}" and ${contents} will be removed from Coptic Vine, with their files. This cannot be undone.`
+        : `"${state.title}" will be withdrawn from review and deleted, with its files. This cannot be undone.`,
+      state.isLive ? `Delete ${noun}` : 'Withdraw and delete',
     ))) return;
     setDeletingRelease(true);
     setError('');
     try {
-      await creatorService.deleteRelease(state.catalogId);
+      await creatorService.deleteSubmission(state.submissionId);
       onDeleted?.();
     } catch (cause) {
       setError(creatorService.describeError(cause));
@@ -470,12 +474,35 @@ export function SubmissionEditor({ submissionId, backLabel, onBack, onSaved, onD
     />
   );
 
+  const dangerZone = allowDelete ? (
+    <Card
+      eyebrow="Danger zone"
+      title={state.isLive ? `Delete this ${isMusic ? 'release' : isLessonSet ? 'lesson set' : 'album'}` : 'Withdraw and delete this submission'}
+      description={state.isLive
+        ? `Deleting permanently removes it, and every ${itemNoun} in it, from Coptic Vine. To remove just one ${itemNoun}, delete it above and save.`
+        : 'Withdrawing takes it out of review and deletes it, with its files.'}
+    >
+      <View style={uiStyles.actions}>
+        <Button
+          kind="danger"
+          icon="trash-outline"
+          label={deletingRelease ? 'Deleting…' : state.isLive ? 'Delete' : 'Withdraw and delete'}
+          busy={deletingRelease}
+          disabled={busy}
+          onPress={() => void deleteSubmission()}
+        />
+      </View>
+    </Card>
+  ) : null;
+
   if (!state.canEdit) {
     return (
       <Page>
         {header}
         <StatusPill status={state.status} />
         <Banner tone="info">This submission was not approved, so it can no longer be edited. Send a new submission instead.</Banner>
+        {!!error && <Banner tone="error">{error}</Banner>}
+        {dangerZone}
       </Page>
     );
   }
@@ -754,24 +781,7 @@ export function SubmissionEditor({ submissionId, backLabel, onBack, onSaved, onD
         </View>
       </Card>
 
-      {isMusic && allowDelete && (
-        <Card
-          eyebrow="Danger zone"
-          title="Delete this release"
-          description="Deleting a release permanently removes it from the Coptic Vine music catalog. Submission history is kept for audit purposes."
-        >
-          <View style={uiStyles.actions}>
-            <Button
-              kind="danger"
-              icon="trash-outline"
-              label={deletingRelease ? 'Deleting release…' : 'Delete release'}
-              busy={deletingRelease}
-              disabled={busy}
-              onPress={() => void deleteRelease()}
-            />
-          </View>
-        </Card>
-      )}
+      {dangerZone}
     </Page>
   );
 }
