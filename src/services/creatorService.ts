@@ -425,12 +425,17 @@ export const creatorService = {
     return rpc<SubmissionEditorState>('get_submission_editor', { p_submission_id: submissionId });
   },
 
-  /** Saves the editor's whole state; returns it as it now stands. */
+  /**
+   * Saves the editor's whole state; returns it as it now stands. This app always
+   * saves as the artist, so a Coptic Vine admin's edit here goes to review like
+   * anyone's; admin edits are made in Coptic Vine Admin.
+   */
   saveEdit(submissionId: string, edit: SubmissionEdit): Promise<SubmissionEditorState> {
     return rpc<SubmissionEditorState>('save_submission_edit', {
       p_submission_id: submissionId,
       p_edit: {
         ...edit,
+        asCreator: true,
         scheduledReleaseAt: edit.scheduledReleaseAt ? toIsoOrNull(edit.scheduledReleaseAt) : null,
         originalReleaseDate: nullIfBlank(edit.originalReleaseDate ?? ''),
       },

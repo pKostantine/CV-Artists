@@ -254,7 +254,6 @@ export interface SubmissionEditorState {
   status: PublicationStatus;
   reviewNotes: string | null;
   creatorAccountId: string;
-  isAdmin: boolean;
   canEdit: boolean;
   earliestReleaseAt: string | null;
   catalogId: string;

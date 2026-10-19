@@ -12,6 +12,15 @@ test('the editor loads and saves through the shared submission editor RPCs', () 
   assert.match(service, /scheduledReleaseAt: edit\.scheduledReleaseAt \? toIsoOrNull\(edit\.scheduledReleaseAt\) : null/);
 });
 
+test('this app saves as the artist, even for a Coptic Vine admin: a resubmission goes back to review', () => {
+  const service = read('src/services/creatorService.ts');
+  assert.match(service, /p_edit: \{\n\s+\.\.\.edit,\n\s+asCreator: true,/);
+  const editor = read('src/components/SubmissionEditor.tsx');
+  assert.doesNotMatch(editor, /isAdmin/);
+  assert.doesNotMatch(editor, /editing as Coptic Vine/);
+  assert.match(editor, /goes live when Coptic Vine approves it/);
+});
+
 test('a single is titled as its release; lessons are numbered; replaced files are sent as new uploads', () => {
   const editor = read('src/components/SubmissionEditor.tsx');
   assert.match(editor, /const single = takesReleaseTitle\(mode, items\.length\);/);

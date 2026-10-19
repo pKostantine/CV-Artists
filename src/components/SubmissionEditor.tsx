@@ -116,11 +116,6 @@ export function fileStatusLabel(status: EditorFileStatus): string {
 
 /** What saving does here, in the editor's words. */
 function saveExplanation(state: SubmissionEditorState): string {
-  if (state.isAdmin) {
-    return state.isLive
-      ? 'You are editing as Coptic Vine. Changes are live when you save; new and replaced files and artwork go live as soon as they finish processing.'
-      : 'You are editing as Coptic Vine. Saving keeps the submission where it is in review.';
-  }
   if (state.isLive) {
     return 'Titles, details, credits, order and deletions are live as soon as you save. New or replaced files and artwork go to Coptic Vine for review first; what is live now stays live until they are approved.';
   }
@@ -416,9 +411,7 @@ export function SubmissionEditor({ submissionId, backLabel, onBack, onSaved, onD
       } else if (next.status === 'pending_review') {
         setNotice('Saved. It is still waiting for Coptic Vine’s review.');
       } else if (next.isLive) {
-        setNotice(next.isAdmin
-          ? 'Saved. Changes are live; new files go live as soon as they finish processing.'
-          : 'Saved. Your changes are live.');
+        setNotice('Saved. Your changes are live.');
       } else {
         setNotice('Saved.');
       }
@@ -719,7 +712,7 @@ export function SubmissionEditor({ submissionId, backLabel, onBack, onSaved, onD
                     </Text>
                   ) : item.saved?.replacement ? (
                     <Text style={uiStyles.muted}>
-                      {`New file waiting: ${item.saved.replacement.fileName ?? 'file'} • ${fileStatusLabel(item.saved.replacement.processingStatus)}${state.isAdmin ? '' : ' • goes live when Coptic Vine approves it'}`}
+                      {`New file waiting: ${item.saved.replacement.fileName ?? 'file'} • ${fileStatusLabel(item.saved.replacement.processingStatus)} • goes live when Coptic Vine approves it`}
                     </Text>
                   ) : null}
                 </View>
