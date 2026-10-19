@@ -66,7 +66,7 @@ test('music and learning recordings have editable titles; lesson sets keep autom
   assert.match(form, /isLesson=\{draft\.mode === 'learning_lesson_set'\}/);
   assert.match(form, /isLesson\s*\?\s*[^\n]*Lesson [^\n]*index \+ 1/);
   assert.match(form, /draft\.media\.forEach\(\(file, index\) =>/);
-  assert.match(form, /draft\.mode !== 'learning_lesson_set' && !hasMusicTitle\(file\.localizedTitle\)/);
+  assert.match(form, /draft\.mode !== 'learning_lesson_set' && !single && !hasMusicTitle\(file\.localizedTitle\)/);
   assert.match(form, /current\.mediaOrderManuallySet[\s\S]*?sortMediaByFilenameOrder/);
   assert.match(form, /mediaOrderManuallySet: true/);
   assert.match(editor, /kind === 'track' \? 'Track' : kind === 'recording' \? 'Recording' : 'Lesson'/);
@@ -81,8 +81,21 @@ test('lesson submissions use Lesson 1, Lesson 2, etc. in current order without c
   const form = read('src/app/submission/new.tsx');
   assert.match(service, /draft\.media\.map\(\(file, index\) => \(\{/);
   assert.match(service, /title: draft\.mode === 'learning_lesson_set'\s*\?\s*[^\n]*Lesson [^\n]*index \+ 1/);
-  assert.match(service, /localizedTitles: draft\.mode === 'learning_lesson_set' \? \{\} : \(file\.localizedTitle \?\? \{\}\)/);
+  assert.match(service, /localizedTitles: draft\.mode === 'learning_lesson_set' \? \{\} : single \? draft\.localizedTitle : \(file\.localizedTitle \?\? \{\}\)/);
   assert.match(service, /preferredLocalizedTitle\(file\.localizedTitle\)/);
   assert.match(form, /draft\.mode === 'learning_lesson_set'\s*\?\s*[^\n]*Lesson [^\n]*index \+ 1/);
   assert.doesNotMatch(service, /title: isMusic \? preferredLocalizedTitle\(file\.localizedTitle\) : file\.name/);
+});
+
+test('a single track or recording takes its release title instead of its own', () => {
+  const titles = read('src/utils/titles.ts');
+  const form = read('src/app/submission/new.tsx');
+  const service = read('src/services/creatorService.ts');
+  const editor = read('src/components/TrackMetadataEditor.tsx');
+  assert.match(titles, /return itemCount === 1 && mode !== 'learning_lesson_set';/);
+  assert.match(form, /const single = takesReleaseTitle\(draft\.mode, draft\.media\.length\);/);
+  assert.match(form, /showTitle=\{!single\}/);
+  assert.match(service, /const single = takesReleaseTitle\(draft\.mode, draft\.media\.length\);/);
+  assert.match(service, /: single\n\s+\? releaseTitle/);
+  assert.match(editor, /\{showTitle \? <View style=\{styles\.group\}>/);
 });

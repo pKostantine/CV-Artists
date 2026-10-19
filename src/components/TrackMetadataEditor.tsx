@@ -147,12 +147,15 @@ export function TrackMetadataEditor({
   onCopyCreditsToAll,
   kind = 'track',
   showCredits = true,
+  showTitle = true,
 }: {
   value: EditableTrackMetadata;
   index: number;
   total: number;
   kind?: 'track' | 'recording' | 'lesson';
   showCredits?: boolean;
+  /** Off for a single, which takes its release's title (titles.ts, takesReleaseTitle). */
+  showTitle?: boolean;
   identityName: string;
   accountId: string | undefined;
   onChange: (change: Partial<EditableTrackMetadata>) => void;
@@ -160,9 +163,11 @@ export function TrackMetadataEditor({
 }) {
   const localized = value.localizedTitle ?? { en: '', ar: '', cop: '', fr: '' };
 
+  if (!showTitle && !showCredits) return null;
+
   return (
     <View style={styles.trackMetadata}>
-      <View style={styles.group}>
+      {showTitle ? <View style={styles.group}>
         <Label>{`${kind === 'track' ? 'Track' : kind === 'recording' ? 'Recording' : 'Lesson'} ${index + 1} title`}</Label>
         <Text style={uiStyles.muted}>
           English, Arabic, and French are optional individually; enter at least one. Filename suggestions are editable.
@@ -182,7 +187,11 @@ export function TrackMetadataEditor({
             </View>
           ))}
         </View>
-      </View>
+      </View> : (
+        <Text style={uiStyles.muted}>
+          {`A single ${kind === 'recording' ? 'recording' : 'track'} takes the ${kind === 'recording' ? 'album' : 'release'} title in every language.`}
+        </Text>
+      )}
 
       {showCredits && (
         <TrackCreditsEditor

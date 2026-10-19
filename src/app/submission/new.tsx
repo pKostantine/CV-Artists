@@ -7,7 +7,7 @@ import { MediaPreview } from '@/components/MediaPreview';
 import { ReleaseDateTimeField } from '@/components/ReleaseDateTimeField';
 import { ReorderableList } from '@/components/ReorderableList';
 import { TrackMetadataEditor } from '@/components/TrackMetadataEditor';
-import { ContributorSearchField } from '@/components/ContributorSearchField';
+import { LearningContributorPicker, LearningHymnPicker } from '@/components/LearningPickers';
 import { Banner, Button, Card, Chips, Dropdown, Field, Label, Page, PageHeader, Segmented, uiStyles } from '@/components/ui';
 import { COLORS, RADII, SPACING, TYPOGRAPHY } from '@/constants/theme';
 import { useWorkspace } from '@/context/WorkspaceContext';
@@ -16,7 +16,7 @@ import type { CatalogOption, CreatorDraft, CreditOptions, SubmissionMode, Upload
 import { confirmAction } from '@/utils/dialogs';
 import { fileSize, uploadLabel } from '@/utils/format';
 import { droppedUploadCandidates, uploadsBlocking } from '@/utils/uploads';
-import { hasMusicTitle, MUSIC_TITLE_LOCALES, preferredLocalizedTitle, releaseTypeForTrackCount, sortMediaByFilenameOrder } from '@/utils/titles';
+import { hasMusicTitle, MUSIC_TITLE_LOCALES, preferredLocalizedTitle, releaseTypeForTrackCount, sortMediaByFilenameOrder, takesReleaseTitle } from '@/utils/titles';
 
 const MODES: { id: SubmissionMode; title: string }[] = [
   { id: 'music', title: 'Music release' },
@@ -53,92 +53,6 @@ const RECORDING_TYPE_VALUES: Record<string, string> = {
   live: 'Live',
   instrumental: 'Instrumental',
 };
-
-/**
- * One shared Coptic Vine artist picker for learning albums and lesson sets.
- * Cantors and choruses are artists, not separate identities or creation types.
- * Unselected names are resolved or created when the submission is sent.
- */
-function LearningContributorPicker({ accountId, name, selectedArtistId, onNameChange, onSelect }: {
-  accountId: string | undefined;
-  name: string;
-  selectedArtistId: string;
-  onNameChange: (name: string) => void;
-  onSelect: (artistId: string, name: string) => void;
-}) {
-  return (
-    <ContributorSearchField
-      label="Artist / Cantor / Chorus"
-      accountId={accountId}
-      kind="artist"
-      value={name}
-      selectedId={selectedArtistId}
-      placeholder="Search an existing Coptic Vine artist by name"
-      hint="Choose an existing profile to link it, including its photo. If no profile matches, keep your new name; Coptic Vine will create a reusable artist credit when you submit."
-      onTextChange={onNameChange}
-      onSelect={(person) => onSelect(person.id, person.title)}
-    />
-  );
-}
-
-function LearningHymnPicker({ accountId, options, value, onChange }: {
-  accountId: string | undefined;
-  options: CatalogOption[];
-  value: string;
-  onChange: (id: string) => void;
-}) {
-  const [created, setCreated] = useState<CatalogOption | null>(null);
-  const [newName, setNewName] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const choices = created && !options.some((item) => item.id === created.id)
-    ? [...options, created]
-    : options;
-
-  async function addHymn() {
-    if (!accountId || !newName.trim()) return;
-    setBusy(true);
-    setError('');
-    try {
-      const next = await creatorService.createHymn(accountId, newName.trim());
-      setCreated(next);
-      onChange(next.id);
-      setNewName('');
-    } catch (cause) {
-      setError(creatorService.describeError(cause));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <View style={styles.group}>
-      <Dropdown
-        label="Hymn"
-        items={choices}
-        value={value}
-        onChange={onChange}
-        placeholder={choices.length ? 'Select an existing hymn' : 'No learning hymns yet'}
-      />
-      <Text style={uiStyles.muted}>Can't find the hymn? Add its title. Coptic Vine will review it with your lesson set.</Text>
-      <Field
-        label="New hymn name"
-        value={newName}
-        onChangeText={(text) => { setNewName(text); setError(''); }}
-        placeholder="Enter the hymn you are teaching"
-      />
-      <Button
-        icon="add"
-        label="Add new hymn"
-        style={styles.addLink}
-        onPress={() => void addHymn()}
-        busy={busy}
-        disabled={!accountId || !newName.trim()}
-      />
-      {!!error && <Banner tone="error">{error}</Banner>}
-    </View>
-  );
-}
 
 function FileRow({ file, index, isLesson = false, previewing, onPreview, onRetry, onRemove, dragHandle }: {
   file: UploadCandidate;
@@ -209,6 +123,8 @@ export default function NewSubmission() {
   const files = draft.artwork ? [draft.artwork, ...draft.media] : draft.media;
   const inferredReleaseType = releaseTypeForTrackCount(draft.media.length);
   const submissionTitle = preferredLocalizedTitle(draft.localizedTitle) || draft.title.trim();
+  // One track (or recording) is a single: it is titled as the release.
+  const single = takesReleaseTitle(draft.mode, draft.media.length);
 
   const problems: string[] = [];
   if (!account) problems.push('Your creator workspace is still loading.');
@@ -229,7 +145,7 @@ export default function NewSubmission() {
   if (!draft.media.length) problems.push(`Add at least one ${draft.mode === 'learning_lesson_set' ? 'lesson' : 'audio'} file.`);
   draft.media.forEach((file, index) => {
     const itemKind = isMusic ? 'track' : draft.mode === 'learning_album' ? 'recording' : 'lesson';
-    if (draft.mode !== 'learning_lesson_set' && !hasMusicTitle(file.localizedTitle)) {
+    if (draft.mode !== 'learning_lesson_set' && !single && !hasMusicTitle(file.localizedTitle)) {
       problems.push(`Add a title in at least one language for ${itemKind} ${index + 1}.`);
     }
     if (isMusic && (file.contributors ?? []).some((credit) => !credit.name.trim())) {
@@ -587,6 +503,7 @@ export default function NewSubmission() {
                   total={draft.media.length}
                   kind={isMusic ? 'track' : 'recording'}
                   showCredits={isMusic}
+                  showTitle={!single}
                   identityName={credits?.identityArtist?.displayName ?? account?.displayName ?? ''}
                   accountId={account?.id}
                   onCopyCreditsToAll={isMusic ? () => copyCreditsToAll(file.id) : undefined}
@@ -617,7 +534,9 @@ export default function NewSubmission() {
               <Text key={file.id} style={uiStyles.muted}>
                 {draft.mode === 'learning_lesson_set'
                   ? `Lesson ${index + 1}`
-                  : `${index + 1}. ${preferredLocalizedTitle(file.localizedTitle) || 'Title required'}`}
+                  : single
+                    ? `${index + 1}. ${submissionTitle || 'Title required'}`
+                    : `${index + 1}. ${preferredLocalizedTitle(file.localizedTitle) || 'Title required'}`}
               </Text>
             ))}
           </View>

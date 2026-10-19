@@ -4,7 +4,8 @@ const fs = require('node:fs');
 const read = (path) => fs.readFileSync(path, 'utf8');
 
 test('learning search and music credits use the same artist profile ID', () => {
-  const form = read('src/app/submission/new.tsx');
+  // The form and its shared Learn pickers.
+  const form = read('src/app/submission/new.tsx') + read('src/components/LearningPickers.tsx');
   const service = read('src/services/creatorService.ts');
   const field = read('src/components/ContributorSearchField.tsx');
   assert.match(form, /kind="artist"/);
@@ -16,7 +17,8 @@ test('learning search and music credits use the same artist profile ID', () => {
 });
 
 test('unmatched names create a credit on submit, not via a separate button', () => {
-  const form = read('src/app/submission/new.tsx');
+  // The form and its shared Learn pickers.
+  const form = read('src/app/submission/new.tsx') + read('src/components/LearningPickers.tsx');
   const initialDraft = read('src/context/WorkspaceContext.tsx');
   assert.match(form, /no profile matches/i);
   assert.match(form, /patch\(\{ learningArtistName, cantorId: '' \}\)/);
@@ -25,7 +27,8 @@ test('unmatched names create a credit on submit, not via a separate button', () 
 });
 
 test('all three submissions continue using a single unified profile search', () => {
-  const form = read('src/app/submission/new.tsx');
+  // The form and its shared Learn pickers.
+  const form = read('src/app/submission/new.tsx') + read('src/components/LearningPickers.tsx');
   const editor = read('src/components/TrackMetadataEditor.tsx');
   assert.match(form, /<ContributorSearchField[\s\S]*?kind="artist"/);
   assert.match(editor, /<ContributorSearchField[\s\S]*?kind="artist"/);
