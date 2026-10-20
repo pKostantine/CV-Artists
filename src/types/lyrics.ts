@@ -23,6 +23,10 @@ export interface LyricEditorTrack {
   lessonSetId?: string | null;
   lessonNumber?: number | null;
   mediaType?: 'audio' | 'video' | null;
+  /** The release, Learn album or lesson set it is in (the first, for a song on several), and where. */
+  collection?: LyricCollectionRef | null;
+  disc?: number | null;
+  position?: number | null;
   mediaAsset: null | {
     id: string;
     provider: 'cloudflare_r2' | 'external';
@@ -32,6 +36,16 @@ export interface LyricEditorTrack {
     durationMs: number | null;
     publicationStatus: string;
   };
+}
+
+export type LyricCollectionKind = 'release' | 'learning_album' | 'lesson_set';
+
+export interface LyricCollectionRef {
+  id: string;
+  kind: LyricCollectionKind;
+  title: string;
+  releaseType?: 'album' | 'ep' | 'single' | null;
+  artwork?: { bucket: string; path: string; version?: number | null } | null;
 }
 
 export interface LyricDraft {

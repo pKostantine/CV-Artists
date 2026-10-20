@@ -2,6 +2,7 @@ import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AppState,
+  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -14,7 +15,7 @@ import {
 import { HeroGlow } from '@/components/Brand';
 import { Banner, CardFill, Loading, PageHeader } from '@/components/ui';
 import { COLORS, RADII, SPACING, TYPOGRAPHY } from '@/constants/theme';
-import { resolveTrackAudio } from '@/services/mediaService';
+import { resolveImageUrl, resolveTrackAudio } from '@/services/mediaService';
 import { listEditableTracks, loadLyricDraft, publishLyricLanguages, saveLyricStudioDraft } from '@/services/lyricsService';
 import type {
   EditableLyricLine,
@@ -25,6 +26,7 @@ import type {
   LyricSyncPrecision,
 } from '@/types/lyrics';
 import { confirmAction } from '@/utils/dialogs';
+import { collectionCountLabel, collectionKeyOf, collectionKindLabel, groupLyricTracks, type LyricCollection } from '@/utils/lyricCollections';
 import { exportLrcFile, importLrcFile } from '@/utils/lrcFiles';
 import {
   createLyricLinesFromText,
@@ -129,6 +131,44 @@ function editableLinesForLocale(
   }));
 }
 
+function CollectionCard({ collection, open, editing, compact, onPress }: {
+  collection: LyricCollection;
+  open: boolean;
+  editing: boolean;
+  compact: boolean;
+  onPress: () => void;
+}) {
+  const artwork = collection.artwork
+    ? resolveImageUrl(collection.artwork.bucket, collection.artwork.path, collection.artwork.version)
+    : null;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${collection.title}, ${collectionKindLabel(collection)}, ${collectionCountLabel(collection)}`}
+      accessibilityState={{ expanded: open }}
+      onPress={onPress}
+      style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [
+        styles.collectionCard,
+        compact && styles.collectionCardCompact,
+        hovered && styles.trackRowHover,
+        open && styles.collectionCardOpen,
+        pressed && styles.pressed,
+      ]}
+    >
+      <View style={[styles.collectionArt, compact && styles.collectionArtCompact]}>
+        {artwork
+          ? <Image source={{ uri: artwork }} style={styles.collectionArtImage} resizeMode="cover" />
+          : <Text style={styles.collectionArtInitial}>{collection.title.slice(0, 1).toUpperCase()}</Text>}
+      </View>
+      <View style={styles.collectionBody}>
+        <Text style={styles.trackTitle} numberOfLines={2}>{collection.title}</Text>
+        <Text style={styles.muted}>{collectionKindLabel(collection)} · {collectionCountLabel(collection)}</Text>
+        {editing && <Text style={styles.editingMark}>Editing</Text>}
+      </View>
+    </Pressable>
+  );
+}
+
 export function LyricsStudio() {
   const { width } = useWindowDimensions();
   const compact = width < 700;
@@ -159,6 +199,14 @@ export function LyricsStudio() {
   }>({ track: null, syncPrecision: 'line', locales: [], rows: [], descriptions: {}, dirty: false });
 
   const selectedTrack = tracks.find((track) => track.id === trackId) ?? null;
+  // Chosen release by release, then track: the release opened, by default
+  // the one holding the track being edited.
+  const collections = useMemo(() => groupLyricTracks(tracks), [tracks]);
+  const [openCollectionKey, setOpenCollectionKey] = useState<string | null>(null);
+  const editingCollectionKey = selectedTrack ? collectionKeyOf(selectedTrack) : null;
+  const openCollection = collections.find((collection) => collection.key === (openCollectionKey ?? editingCollectionKey))
+    ?? collections[0]
+    ?? null;
   const audioUrl = selectedTrack ? resolveTrackAudio(selectedTrack) : null;
   const player = useAudioPlayer(null, { updateInterval: 80 });
   const status = useAudioPlayerStatus(player);
@@ -710,24 +758,52 @@ export function LyricsStudio() {
 
         <View style={[styles.panel, compact && styles.panelCompact]}>
           <CardFill />
-          <Text style={styles.sectionTitle}>1. Choose a track</Text>
-          <View style={[styles.trackList, compact && styles.trackListCompact]}>
-            {tracks.map((track) => (
-              <Pressable
-                key={track.id}
-                style={[styles.trackCard, compact && styles.trackCardCompact, track.id === trackId && styles.trackCardSelected]}
-                onPress={() => void switchTrack(track.id)}
-              >
-                <Text style={styles.trackTitle}>{track.title}</Text>
-                <Text style={styles.muted}>
-                  {track.targetType === 'music_track' ? 'Music' : track.targetType === 'learning_album_recording' ? 'Learning album' : track.mediaType === 'video' ? 'Video lesson' : 'Lesson'}
-                  {' · '}{track.subtitle ?? 'Coptic Vine'}{' · '}
-                  {track.publicationStatus}
-                  {track.durationMs ? ` · ${formatClock(track.durationMs)}` : ''}
-                </Text>
-              </Pressable>
+          <Text style={styles.sectionTitle}>1. Choose a release, then a track</Text>
+          <View style={[styles.collectionList, compact && styles.collectionListCompact]}>
+            {collections.map((collection) => (
+              <CollectionCard
+                key={collection.key}
+                collection={collection}
+                open={collection.key === openCollection?.key}
+                editing={collection.key === editingCollectionKey}
+                compact={compact}
+                onPress={() => {
+                  setOpenCollectionKey(collection.key);
+                  // A single has nothing else to choose.
+                  if (collection.tracks.length === 1) void switchTrack(collection.tracks[0].id);
+                }}
+              />
             ))}
           </View>
+          {openCollection && openCollection.tracks.length > 1 && (
+            <View style={styles.trackRows}>
+              <Text style={styles.trackRowsTitle}>{openCollection.title}</Text>
+              {openCollection.tracks.map((track, index) => (
+                <Pressable
+                  key={track.id}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: track.id === trackId }}
+                  onPress={() => void switchTrack(track.id)}
+                  style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [
+                    styles.trackRow,
+                    hovered && styles.trackRowHover,
+                    track.id === trackId && styles.trackRowSelected,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text style={[styles.trackNumber, track.id === trackId && styles.trackNumberSelected]}>{track.position ?? index + 1}</Text>
+                  <View style={styles.trackRowBody}>
+                    <Text style={styles.trackTitle} numberOfLines={2}>{track.title}</Text>
+                    <Text style={styles.muted}>
+                      {track.targetType === 'learning_lesson' && track.mediaType === 'video' ? 'Video lesson · ' : ''}
+                      {track.publicationStatus}
+                      {track.durationMs ? ` · ${formatClock(track.durationMs)}` : ''}
+                    </Text>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          )}
         </View>
 
         <View style={[styles.panel, compact && styles.panelCompact]}>
@@ -1162,17 +1238,34 @@ const styles = StyleSheet.create({
   sectionTitle: { color: COLORS.white, fontFamily: TYPOGRAPHY.title, fontSize: 20, lineHeight: 26, fontWeight: '700' },
   sectionCopy: { flex: 1, minWidth: 240, gap: 4 },
   muted: { color: COLORS.muted, fontSize: 13.5, lineHeight: 20 },
-  trackList: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
-  trackListCompact: { flexDirection: 'column', flexWrap: 'nowrap', gap: 6 },
-  trackCard: {
-    minWidth: 220,
-    flexGrow: 1,
-    padding: 14,
+  collectionList: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
+  collectionListCompact: { flexDirection: 'column', flexWrap: 'nowrap', gap: 6 },
+  collectionCard: {
+    width: 260,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 10,
     borderRadius: RADII.md,
     backgroundColor: COLORS.inset,
   },
-  trackCardSelected: { backgroundColor: COLORS.goldSoft },
-  trackCardCompact: { minWidth: 0, width: '100%', flexGrow: 0, paddingVertical: 12 },
+  collectionCardCompact: { width: '100%' },
+  collectionCardOpen: { backgroundColor: COLORS.goldSoft },
+  collectionArt: { width: 64, height: 64, borderRadius: 10, overflow: 'hidden', backgroundColor: COLORS.goldSoft, alignItems: 'center', justifyContent: 'center' },
+  collectionArtCompact: { width: 52, height: 52 },
+  collectionArtImage: { width: '100%', height: '100%' },
+  collectionArtInitial: { color: COLORS.gold, fontFamily: TYPOGRAPHY.title, fontWeight: '700', fontSize: 24 },
+  collectionBody: { flex: 1, minWidth: 0, gap: 2 },
+  editingMark: { color: COLORS.gold, fontSize: 12, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase' },
+  trackRows: { gap: 4, paddingTop: SPACING.sm, borderTopWidth: 1, borderTopColor: COLORS.hairline },
+  trackRowsTitle: { color: COLORS.muted, fontSize: 12, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 },
+  trackRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 10, paddingHorizontal: 12, borderRadius: RADII.sm },
+  trackRowHover: { backgroundColor: COLORS.hover },
+  trackRowSelected: { backgroundColor: COLORS.goldSoft },
+  trackRowBody: { flex: 1, minWidth: 0, gap: 2 },
+  trackNumber: { width: 24, textAlign: 'right', color: COLORS.faint, fontFamily: TYPOGRAPHY.title, fontWeight: '700', fontSize: 15 },
+  trackNumberSelected: { color: COLORS.gold },
+  pressed: { opacity: 0.82 },
   trackTitle: { color: COLORS.white, fontFamily: TYPOGRAPHY.title, fontWeight: '700', fontSize: 16 },
   modeSwitch: { alignSelf: 'flex-start', flexDirection: 'row', flexWrap: 'wrap', gap: 4, padding: 4, borderRadius: 22, backgroundColor: COLORS.inset },
   modeButton: { minHeight: 38, minWidth: 116, alignItems: 'center', justifyContent: 'center', paddingHorizontal: SPACING.md, borderRadius: RADII.pill },
