@@ -2,6 +2,8 @@ import 'react-native-url-polyfill/auto';
 import { Platform } from 'react-native';
 import { createClient } from '@supabase/supabase-js';
 
+import { cvApiAuth, USER_API_URL } from '@/services/userApi';
+
 // Native has no localStorage; expo-sqlite provides a persistent one so the
 // session (and the PKCE verifier used by Google sign-in) survives app restarts.
 if (Platform.OS !== 'web') {
@@ -24,14 +26,20 @@ export const supabaseKey =
 // Static web export renders once without a window; skip storage there.
 const storage = typeof globalThis.localStorage !== 'undefined' ? globalThis.localStorage : undefined;
 
-export const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    flowType: 'pkce',
-    persistSession: Boolean(storage),
-    storage,
-    autoRefreshToken: true,
-    // On web the OAuth redirect lands back on the app with ?code=, which the
-    // client exchanges itself. Native completes the exchange in authService.
-    detectSessionInUrl: Platform.OS === 'web',
-  },
-});
+// With cv-api as the source (src/services/userApi.ts), the same requests go to
+// cv-api with its session's bearer token: the client never signs in itself,
+// and supabase.auth is not there to call (src/services/account.ts signs in for
+// both).
+export const supabase = cvApiAuth
+  ? createClient(USER_API_URL, supabaseKey, { accessToken: cvApiAuth.accessToken })
+  : createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        flowType: 'pkce',
+        persistSession: Boolean(storage),
+        storage,
+        autoRefreshToken: true,
+        // On web the OAuth redirect lands back on the app with ?code=, which the
+        // client exchanges itself. Native completes the exchange in authService.
+        detectSessionInUrl: Platform.OS === 'web',
+      },
+    });

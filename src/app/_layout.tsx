@@ -4,15 +4,15 @@ import { Platform, StyleSheet, View } from 'react-native';
 import { Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import type { Session } from '@supabase/supabase-js';
 import { AppShell } from '@/components/AppShell';
 import NotificationBootstrap from '@/components/NotificationBootstrap';
 import { SignInScreen } from '@/components/SignInScreen';
 import { Loading } from '@/components/ui';
 import { COLORS } from '@/constants/theme';
 import { WorkspaceProvider } from '@/context/WorkspaceContext';
+import { account, type AccountSession } from '@/services/account';
 import { describeAuthError } from '@/services/authService';
-import { supabase } from '@/services/supabase';
+import { USER_DATA_SOURCE } from '@/services/userApi';
 
 function AppStack() {
   return (
@@ -32,10 +32,13 @@ function takeWebAuthRedirectError(): string {
   const url = new URL(window.location.href);
   const hash = new URLSearchParams(url.hash.replace(/^#/, ''));
   const message = url.searchParams.get('error_description') || hash.get('error_description') || '';
-  if (message) {
+  // cv-api's own failures (a lost or stale sign-in) give only a code.
+  const failed = USER_DATA_SOURCE === 'cloudflare' && url.searchParams.has('error');
+  if (message || failed) {
     window.history.replaceState(null, '', url.pathname);
   }
-  return message ? describeAuthError(new Error(message.replace(/\+/g, ' '))) : '';
+  if (message) return describeAuthError(new Error(message.replace(/\+/g, ' ')));
+  return failed ? 'Google sign-in did not complete. Try again.' : '';
 }
 
 function clearWebAuthCode() {
@@ -49,19 +52,19 @@ export default function RootLayout() {
   const [fontsLoaded] = useLocalFonts({
     Athanasius: require('../../assets/fonts/CopticVine-Athanasius-v1.0.ttf'),
   });
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<AccountSession | null>(null);
   const [ready, setReady] = useState(false);
   const [authError] = useState(takeWebAuthRedirectError);
 
   useEffect(() => {
-    // getSession waits for the web ?code= exchange (detectSessionInUrl) to finish.
-    void supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    // getSession waits for the web ?code= exchange (detectSessionInUrl) to
+    // finish; with cv-api, for the first check, which takes Google's cookie.
+    void account.getSession().catch(() => null).then((restored) => {
+      setSession(restored);
       setReady(true);
-      if (data.session) clearWebAuthCode();
+      if (restored) clearWebAuthCode();
     });
-    const { data } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
-    return () => data.subscription.unsubscribe();
+    return account.onChange(setSession);
   }, []);
 
   if (!fontsLoaded) {

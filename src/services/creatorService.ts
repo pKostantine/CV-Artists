@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import { File as ExpoFile } from 'expo-file-system';
+import { uploadSessions } from '@/services/account';
 import { supabase } from '@/services/supabase';
 import { createUploadAuth } from '@/utils/uploadAuth';
 import {
@@ -74,7 +75,7 @@ const MIME_BY_EXTENSION: Record<string, string> = {
   heif: 'image/heif',
 };
 
-const uploadAuth = createUploadAuth(supabase.auth);
+const uploadAuth = createUploadAuth(uploadSessions);
 
 /** PostgREST errors are plain objects, not Error instances. */
 function describeError(error: unknown): string {
