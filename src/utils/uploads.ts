@@ -110,7 +110,7 @@ export async function runUpload(
   mode: CreatorDraft['mode'],
   patch: (id: string, change: Partial<UploadCandidate>) => void,
 ): Promise<void> {
-  // A successful R2 upload is durable even if Supabase rejected the subsequent
+  // A successful R2 upload is durable even if cv-api rejected the subsequent
   // processing RPC. Keep its intent across retries and recover previous failed
   // uploads by exact creator/filename/size/type before transferring any bytes.
   let uploadIntentId = file.uploadIntentId;

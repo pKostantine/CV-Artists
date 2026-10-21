@@ -57,7 +57,7 @@ Not every Coptic Vine user needs a Coptic Vine Artists account. The app is speci
 
 ### Artist Accounts and Workspaces
 
-Authentication is powered by Supabase and supports email/password plus Google sign-in.
+Authentication is powered by cv-api (Better Auth on Cloudflare D1) and supports email/password plus Google sign-in.
 
 A creator can work inside the artist workspace or workspaces connected to their account. Workspace switching is available when an account manages more than one creator identity.
 
@@ -87,7 +87,7 @@ Music submissions support multiple audio files, real drag-and-drop on web, real 
 
 Coptic Vine automatically determines whether a music release is a Single, EP, or Album from its track count.
 
-Large masters use multipart upload support, and media processing begins automatically after files are uploaded rather than waiting for admin approval. Long uploads obtain a fresh Supabase token for each chunk and retry an individual request if its JWT expires; a token refresh does not restart an entire video.
+Large masters use multipart upload support, and media processing begins automatically after files are uploaded rather than waiting for admin approval. Long uploads obtain a fresh cv-api token for each chunk and retry an individual request if its session has to be checked again; that does not restart an entire video.
 
 **Every lesson video is automatically standardized after upload.** The Coptic Vine media processor converts it to a fast-start H.264 MP4 (quality-based CRF 20, maximum 1080p without upscaling, 192 kbps AAC audio). It also generates a separate audio-only M4A for video lessons. There is no user-facing compression toggle; the published file is the standardized delivery version.
 
@@ -186,21 +186,20 @@ npm run typecheck
 npm run deploy     # expo export -p web, then wrangler deploy
 ```
 
-The app talks to Supabase only through public RPCs; the `creator`, `media`, `music`, and `learning` schemas are not exposed through the Data API. The creator RPCs (`get_creator_workspaces`, `get_creator_dashboard`, `create_creator_artist`, `create_creator_submission`, and friends) live in the main Coptic Vine repository under `supabase/migrations/20260917160000_add_chc_artists_creator_rpcs.sql`.
+The app talks to cv-api (the main Coptic Vine repository's `workers/api`, at https://api.copticvine.ca) only through its RPCs; the `creator`, `media`, `music`, and `learning` tables are not exposed directly. The creator RPCs (`get_creator_workspaces`, `get_creator_dashboard`, `create_creator_artist`, `create_creator_submission`, and friends) are in `workers/api/src/rpc/creator`. Set `EXPO_PUBLIC_USER_API_URL=http://localhost:8790` to use a local cv-api (`npm run dev` in `workers/api`).
 
 ### Google sign-in setup
 
-"Continue with Google" uses Supabase OAuth with PKCE. It needs, once per Supabase project:
+"Continue with Google" goes through cv-api's Better Auth. It needs, once:
 
-1. **Google Cloud Console** — create an OAuth client of type *Web application*. Add `https://wtuujmeinzqfikvuofmh.supabase.co/auth/v1/callback` as an authorized redirect URI.
-2. **Supabase Dashboard → Authentication → Sign In / Providers → Google** — enable it and paste the client ID and secret.
-3. **Supabase Dashboard → Authentication → URL Configuration → Redirect URLs** — allow every place the app runs:
-   - `https://artists.copticvine.ca/**`
-   - `https://cv-artists.hrmpdd8d6c.workers.dev/**`
-   - `http://localhost:8081/**` for local web development
-   - `copticvineartists://**` for the iOS and Android apps
+1. **Google Cloud Console**: the web OAuth client (the one in cv-api's `GOOGLE_CLIENT_ID`) lists `https://api.copticvine.ca/auth/callback/google` as an authorized redirect URI (and `http://localhost:8790/auth/callback/google` for a local cv-api).
+2. **cv-api**: the client's secret is set with `npx wrangler secret put GOOGLE_CLIENT_SECRET` in `workers/api`.
+3. **cv-api's `TRUSTED_ORIGINS`** (`workers/api/wrangler.jsonc`) lists every place the app runs:
+   - `https://artists.copticvine.ca`
+   - `https://cv-artists.hrmpdd8d6c.workers.dev`
+   - `copticvineartists://` for the iOS and Android apps
 
-Until the provider is enabled, the button explains that Google sign-in is not switched on instead of sending the creator to an error page.
+Until the secret is set, the button explains that Google sign-in is not switched on instead of sending the creator to an error page.
 
 ## Relationship to Coptic Vine
 
@@ -233,9 +232,9 @@ The interface is designed to work across:
 
 Platform-specific improvements can be introduced where necessary while keeping the core experience consistent.
 
-### Supabase
+### cv-api
 
-**Supabase** provides backend services used by the application, including areas such as:
+**cv-api** (the main Coptic Vine repository's `workers/api`, on Cloudflare Workers and D1) provides the backend services used by the application, including areas such as:
 
 - Authentication
 - User accounts
@@ -320,7 +319,7 @@ The platform should be able to grow from basic release submissions into a more c
 
 The current creator platform includes:
 
-- Supabase authentication and creator workspaces
+- cv-api sign-in and creator workspaces
 - Google sign-in
 - artist profile editing
 - multi-file and multipart uploads

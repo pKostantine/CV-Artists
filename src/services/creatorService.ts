@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import { File as ExpoFile } from 'expo-file-system';
 import { uploadSessions } from '@/services/account';
-import { supabase } from '@/services/supabase';
+import { api } from '@/services/api';
 import { createUploadAuth } from '@/utils/uploadAuth';
 import {
   clearResumable,
@@ -94,7 +94,7 @@ function describeError(error: unknown): string {
 }
 
 async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
-  const { data, error } = await supabase.rpc(fn, args);
+  const { data, error } = await api.rpc(fn, args);
   if (error) throw new Error(describeError(error));
   return data as T;
 }
@@ -516,7 +516,7 @@ export const creatorService = {
    */
   async findReusableUploadedMediaIntent(accountId: string, file: UploadCandidate): Promise<string | null> {
     if (file.mediaType !== 'video' || !file.name || !file.size) return null;
-    const { data, error } = await supabase.rpc('find_reusable_uploaded_media_intent', {
+    const { data, error } = await api.rpc('find_reusable_uploaded_media_intent', {
       p_creator_account_id: accountId,
       p_original_filename: file.name,
       p_content_length: file.size,

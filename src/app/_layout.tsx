@@ -12,7 +12,6 @@ import { COLORS } from '@/constants/theme';
 import { WorkspaceProvider } from '@/context/WorkspaceContext';
 import { account, type AccountSession } from '@/services/account';
 import { describeAuthError } from '@/services/authService';
-import { USER_DATA_SOURCE } from '@/services/userApi';
 
 function AppStack() {
   return (
@@ -33,7 +32,7 @@ function takeWebAuthRedirectError(): string {
   const hash = new URLSearchParams(url.hash.replace(/^#/, ''));
   const message = url.searchParams.get('error_description') || hash.get('error_description') || '';
   // cv-api's own failures (a lost or stale sign-in) give only a code.
-  const failed = USER_DATA_SOURCE === 'cloudflare' && url.searchParams.has('error');
+  const failed = url.searchParams.has('error');
   if (message || failed) {
     window.history.replaceState(null, '', url.pathname);
   }

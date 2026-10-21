@@ -5,18 +5,18 @@ import type {
   LyricEditorTrack,
   LyricSyncPrecision,
 } from '@/types/lyrics';
-import { supabase } from './supabase';
+import { api } from './api';
 
 function unwrap<T>(data: T | null, error: { message: string } | null): T {
   if (error) throw new Error(error.message);
-  if (data === null) throw new Error('Supabase returned no data.');
+  if (data === null) throw new Error('The server returned no data.');
   return data;
 }
 
 export async function listEditableTracks(): Promise<LyricEditorTrack[]> {
   const [music, learning] = await Promise.all([
-    supabase.rpc('get_lyric_editor_tracks'),
-    supabase.rpc('get_learning_lyric_editor_items'),
+    api.rpc('get_lyric_editor_tracks'),
+    api.rpc('get_learning_lyric_editor_items'),
   ]);
   const musicTracks = unwrap<Array<Omit<LyricEditorTrack, 'targetType' | 'maxSyncPrecision'>>>(
     music.data as Array<Omit<LyricEditorTrack, 'targetType' | 'maxSyncPrecision'>> | null,
@@ -35,8 +35,8 @@ export async function loadLyricDraft(
   locale: LocaleCode,
 ): Promise<LyricDraft | null> {
   const request = track.targetType === 'music_track'
-    ? supabase.rpc('get_track_lyric_language_draft', { p_track_id: track.id, p_locale: locale })
-    : supabase.rpc('get_learning_lyric_language_draft', {
+    ? api.rpc('get_track_lyric_language_draft', { p_track_id: track.id, p_locale: locale })
+    : api.rpc('get_learning_lyric_language_draft', {
         p_item_kind: learningKind(track), p_item_id: track.id, p_locale: locale,
       });
   const { data, error } = await request;
@@ -50,7 +50,7 @@ export async function saveLyricDraft(input: {
   description: string | null;
   lines: EditableLyricLine[];
 }): Promise<LyricDraft> {
-  const { data, error } = await supabase.rpc('save_track_lyric_language_draft', {
+  const { data, error } = await api.rpc('save_track_lyric_language_draft', {
     p_track_id: input.trackId,
     p_locale: input.locale,
     p_description: input.description,
@@ -85,12 +85,12 @@ export async function saveLyricStudioDraft(input: {
       })),
     }));
   const request = input.track.targetType === 'music_track'
-    ? supabase.rpc('save_track_lyric_studio_draft_v2', {
+    ? api.rpc('save_track_lyric_studio_draft_v2', {
         p_track_id: input.track.id,
         p_sync_precision: input.syncPrecision,
         p_languages: languages,
       })
-    : supabase.rpc('save_learning_lyric_studio_draft', {
+    : api.rpc('save_learning_lyric_studio_draft', {
         p_item_kind: learningKind(input.track),
         p_item_id: input.track.id,
         p_sync_precision: input.syncPrecision,
@@ -111,10 +111,10 @@ export async function publishLyricLanguages(
   syncPrecision: Extract<LyricSyncPrecision, 'unsynced' | 'line'>,
 ): Promise<{ trackId: string; locales: LocaleCode[]; publishedAt: string }> {
   const request = track.targetType === 'music_track'
-    ? supabase.rpc('publish_track_lyric_languages_v2', {
+    ? api.rpc('publish_track_lyric_languages_v2', {
         p_track_id: track.id, p_locales: locales, p_sync_precision: syncPrecision,
       })
-    : supabase.rpc('publish_learning_lyric_languages', {
+    : api.rpc('publish_learning_lyric_languages', {
         p_item_kind: learningKind(track), p_item_id: track.id,
         p_locales: locales, p_sync_precision: syncPrecision,
       });

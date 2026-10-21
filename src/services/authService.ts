@@ -1,12 +1,11 @@
 import { Platform } from 'react-native';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
-import { supabase, supabaseKey, supabaseUrl } from '@/services/supabase';
 import { cvApiAuth } from '@/services/userApi';
 
 WebBrowser.maybeCompleteAuthSession();
 
-/** Where Google sends the browser back to after consent. Must be in Supabase's Redirect URLs allow list (cv-api's TRUSTED_ORIGINS). */
+/** Where Google sends the browser back to after consent. Must be among cv-api's TRUSTED_ORIGINS. */
 export function oauthRedirectUrl(): string {
   if (Platform.OS === 'web') {
     // Return to the page the creator started from (e.g. /lyrics), without any stale auth params.
@@ -19,81 +18,24 @@ export function oauthRedirectUrl(): string {
 }
 
 /**
- * Exchanges the `?code=` a PKCE OAuth redirect carries for a session. Returns
- * false when the URL is not an auth redirect. Throws with Supabase's own
- * description when the provider reported an error.
+ * Finishes a sign-in from the link cv-api brings the app back with (it holds
+ * the session itself, Better Auth's Expo plugin). Returns whether a creator is
+ * signed in afterwards.
  */
 export async function completeOAuthFromUrl(url: string): Promise<boolean> {
-  if (cvApiAuth) {
-    // cv-api's link back holds the session itself (Better Auth's Expo plugin).
-    await cvApiAuth.applyCallback(url);
-    return Boolean(await cvApiAuth.getSession());
-  }
-  const parsed = new URL(url);
-  const hash = new URLSearchParams(parsed.hash.replace(/^#/, ''));
-  const error = parsed.searchParams.get('error_description') || hash.get('error_description');
-  if (error) throw new Error(error.replace(/\+/g, ' '));
-
-  const code = parsed.searchParams.get('code');
-  if (!code) return false;
-  const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-  if (exchangeError) throw exchangeError;
-  return true;
-}
-
-/**
- * Supabase only reports a disabled provider after redirecting to it, which on
- * web strands the creator on a raw JSON error page. Ask first instead.
- */
-async function assertGoogleEnabled(): Promise<void> {
-  let enabled = true;
-  try {
-    const response = await fetch(`${supabaseUrl}/auth/v1/settings`, { headers: { apikey: supabaseKey } });
-    if (response.ok) {
-      const settings = await response.json() as { external?: { google?: boolean } };
-      enabled = settings.external?.google !== false;
-    }
-  } catch {
-    // If the check itself fails, let the real sign-in attempt report the problem.
-  }
-  if (!enabled) throw new Error('provider is not enabled');
+  await cvApiAuth.applyCallback(url);
+  return Boolean(await cvApiAuth.getSession());
 }
 
 export async function signInWithGoogle(): Promise<void> {
-  if (cvApiAuth) {
-    // The web goes to Google and back with the cookie; a phone, through cv-api's proxy, with the session in the link.
-    await cvApiAuth.signInWithGoogle(oauthRedirectUrl());
-    return;
-  }
-  await assertGoogleEnabled();
-  const redirectTo = oauthRedirectUrl();
-
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo, skipBrowserRedirect: true },
-  });
-  if (error) throw error;
-  if (!data.url) throw new Error('Google sign-in did not return a URL.');
-
-  if (Platform.OS === 'web') {
-    // Full-page redirect to Google; the ?code= is exchanged when the app loads again.
-    window.location.assign(data.url);
-    return;
-  }
-
-  const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
-  if (result.type !== 'success') return;
-  await completeOAuthFromUrl(result.url);
+  // The web goes to Google and back with the cookie; a phone, through cv-api's proxy, with the session in the link.
+  await cvApiAuth.signInWithGoogle(oauthRedirectUrl());
 }
 
-/** Turns Supabase's provider error into something a creator can act on. */
+/** Turns a sign-in error into something a creator can act on. */
 export function describeAuthError(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error);
-  if (/provider is not enabled|Unsupported provider/i.test(message)) {
-    return 'Google sign-in is not switched on for Coptic Vine Artists yet. Use your email and password for now.';
-  }
-  // Supabase's words, then cv-api's (Better Auth's).
-  if (/Invalid login credentials|Invalid email or password/i.test(message)) return 'That email and password do not match a Coptic Vine Artists account.';
-  if (/Email not confirmed|Email not verified/i.test(message)) return 'Confirm your email address first. Check your inbox for the link.';
+  if (/Invalid email or password/i.test(message)) return 'That email and password do not match a Coptic Vine Artists account.';
+  if (/Email not verified/i.test(message)) return 'Confirm your email address first. Check your inbox for the link.';
   return message;
 }
