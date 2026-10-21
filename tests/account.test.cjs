@@ -4,19 +4,18 @@ const fs = require('node:fs');
 const ts = require('typescript');
 
 /**
- * Signing in from either source (src/services/account.ts): Supabase Auth, or
- * cv-api's client (src/services/cvApiAuth.ts, a copy of Coptic Vine's, which
- * is tested against the cv-api Worker there). The module is loaded for real,
- * with its imports replaced by stubs.
+ * Signing in (src/services/account.ts): cv-api's client
+ * (src/services/cvApiAuth.ts, a copy of Coptic Vine's, which is tested against
+ * the cv-api Worker there). The module is loaded for real, with its imports
+ * replaced by stubs.
  */
-function load(cvApiAuth, supabase = { auth: {} }, os = 'ios') {
+function load(cvApiAuth, os = 'ios') {
   const compiled = ts.transpileModule(fs.readFileSync('src/services/account.ts', 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true },
   }).outputText;
   const stubs = {
     'expo-linking': { createURL: (path) => `copticvineartists://${path}` },
     'react-native': { Platform: { OS: os } },
-    '@/services/supabase': { supabase },
     '@/services/userApi': { cvApiAuth },
   };
   const moduleObject = { exports: {} };
@@ -63,17 +62,3 @@ test('with cv-api, a phone\'s confirmation link comes back to auth/callback, and
   assert.equal((await account.getSession()).user.email, 'creator@example.com');
 });
 
-test('with Supabase, signing in is Supabase Auth\'s, and the uploads get Supabase Auth itself', async () => {
-  const signedUp = [];
-  const auth = {
-    async getSession() { return { data: { session: { user: { id: 'user-2' } } }, error: null }; },
-    async signUp(request) { signedUp.push(request); return { data: { session: null }, error: null }; },
-    async signInWithPassword() { return { data: {}, error: Object.assign(new Error('Invalid login credentials'), { status: 400 }) }; },
-  };
-  const { account, uploadSessions } = load(null, { auth });
-  assert.equal(uploadSessions, auth);
-  assert.equal((await account.getSession()).user.id, 'user-2');
-  await assert.rejects(account.signInWithEmail('a@example.com', 'wrong'), /Invalid login credentials/);
-  assert.deepEqual(await account.signUpWithEmail('b@example.com', 'a password', 'Name'), { confirmationRequired: true });
-  assert.deepEqual(signedUp[0].options.data, { full_name: 'Name' });
-});

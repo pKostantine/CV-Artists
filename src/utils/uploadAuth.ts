@@ -1,6 +1,6 @@
 /**
- * Coptic Vine uploads may last longer than a Supabase access token. Get a fresh token
- * for every upload request instead of capturing the JWT when the upload starts.
+ * Coptic Vine uploads may outlast a session token. Get a fresh token
+ * for every upload request instead of capturing one when the upload starts.
  * Concurrent parts share one refresh so one-use refresh tokens never race.
  */
 export interface UploadSession {

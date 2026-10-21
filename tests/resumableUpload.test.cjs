@@ -114,7 +114,7 @@ function harness({ failPart = null, missingUpload = false } = {}) {
     'react-native': { Platform: { OS: 'web' } },
     'expo-file-system': { File: class {} },
     '@/services/account': { uploadSessions: {} },
-    '@/services/supabase': { supabase: {} },
+    '@/services/api': { api: {} },
     '@/utils/uploadAuth': { createUploadAuth: () => uploadAuth },
     '@/utils/titles': { preferredLocalizedTitle: (titles) => titles?.en || '', releaseTypeForTrackCount: () => 'single' },
     // Retries happen at once in tests.

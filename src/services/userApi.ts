@@ -5,23 +5,11 @@ import { AppState, Platform } from 'react-native';
 import { createCvApiAuth, type CvApiAuth, type CvApiMessage } from '@/services/cvApiAuth';
 
 /**
- * Where Coptic Vine Artists signs in and keeps its data (Phase 2 of Coptic
- * Vine's D1 migration, docs/d1/phase2-runbook.md in pKostantine/Coptic-Vine):
- *
- *   supabase    Supabase Auth and Supabase's REST API: the old copy, kept
- *               30 days after the cutover (21 Oct 2026).
- *   cloudflare  cv-api at https://api.copticvine.ca: Better Auth for signing
- *               in (src/services/cvApiAuth.ts), and the same REST and
- *               function requests as Supabase's, on D1.
- *
- * cv-api is the default since the cutover; EXPO_PUBLIC_USER_DATA_SOURCE=supabase
- * switches back, and
- * EXPO_PUBLIC_USER_API_URL gives another address than https://api.copticvine.ca.
+ * Where Coptic Vine Artists signs in and keeps its data: cv-api at
+ * https://api.copticvine.ca (Coptic Vine's workers/api), with Better Auth for
+ * signing in (src/services/cvApiAuth.ts) and the REST and function requests
+ * supabase-js makes, on D1. EXPO_PUBLIC_USER_API_URL gives another address.
  */
-export type UserDataSource = 'supabase' | 'cloudflare';
-
-export const USER_DATA_SOURCE: UserDataSource = process.env.EXPO_PUBLIC_USER_DATA_SOURCE === 'supabase' ? 'supabase' : 'cloudflare';
-
 export const USER_API_URL = (process.env.EXPO_PUBLIC_USER_API_URL || 'https://api.copticvine.ca').replace(/\/+$/, '');
 
 const MESSAGES: Record<CvApiMessage, string> = {
@@ -44,37 +32,35 @@ const MESSAGES: Record<CvApiMessage, string> = {
 };
 
 /**
- * Signing in to cv-api, when it is the source; null while Supabase is. The web
- * keeps a bearer token too, which the upload authorizer is handed, and reads
- * the links back on any page, since Google returns to the page it left.
+ * Signing in to cv-api. The web keeps a bearer token too, which the upload
+ * authorizer is handed, and reads the links back on any page, since Google
+ * returns to the page it left.
  */
-export const cvApiAuth: CvApiAuth | null = USER_DATA_SOURCE === 'cloudflare'
-  ? createCvApiAuth({
-      baseUrl: USER_API_URL,
-      native: Platform.OS !== 'web',
-      bearer: true,
-      appOrigin: Platform.OS === 'web' ? '' : Linking.createURL(''),
-      callbackPath: Platform.OS === 'web' ? undefined : 'auth/callback',
-      // expo-sqlite's localStorage on a phone (installed by src/services/supabase.ts), the browser's on the web.
-      storage: () => (typeof globalThis.localStorage === 'undefined' ? null : globalThis.localStorage),
-      openAuthSession: async (url, returnUrl) => {
-        if (Platform.OS === 'android') {
-          try {
-            WebBrowser.dismissAuthSession();
-          } catch {
-            // None was open.
-          }
-        }
-        return WebBrowser.openAuthSessionAsync(url, returnUrl);
-      },
-      navigate: (url) => window.location.assign(url),
-      replaceUrl: Platform.OS === 'web' ? (url) => window.history.replaceState(window.history.state, '', url) : undefined,
-      message: (key) => MESSAGES[key],
-    })
-  : null;
+export const cvApiAuth: CvApiAuth = createCvApiAuth({
+  baseUrl: USER_API_URL,
+  native: Platform.OS !== 'web',
+  bearer: true,
+  appOrigin: Platform.OS === 'web' ? '' : Linking.createURL(''),
+  callbackPath: Platform.OS === 'web' ? undefined : 'auth/callback',
+  // expo-sqlite's localStorage on a phone (installed by src/services/api.ts), the browser's on the web.
+  storage: () => (typeof globalThis.localStorage === 'undefined' ? null : globalThis.localStorage),
+  openAuthSession: async (url, returnUrl) => {
+    if (Platform.OS === 'android') {
+      try {
+        WebBrowser.dismissAuthSession();
+      } catch {
+        // None was open.
+      }
+    }
+    return WebBrowser.openAuthSessionAsync(url, returnUrl);
+  },
+  navigate: (url) => window.location.assign(url),
+  replaceUrl: Platform.OS === 'web' ? (url) => window.history.replaceState(window.history.state, '', url) : undefined,
+  message: (key) => MESSAGES[key],
+});
 
-// Checked again whenever the app comes back, as Supabase's tokens are refreshed then.
-if (cvApiAuth && Platform.OS !== 'web') {
+// Checked again whenever the app comes back.
+if (Platform.OS !== 'web') {
   AppState.addEventListener('change', (state) => {
     if (state === 'active') void cvApiAuth.refresh();
   });
