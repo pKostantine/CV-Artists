@@ -8,8 +8,8 @@ import Icon, { type IconName } from '@/components/Icon';
 import { IconButton } from '@/components/ui';
 import { COLORS, RADII, SPACING, TYPOGRAPHY } from '@/constants/theme';
 import { useWorkspace } from '@/context/WorkspaceContext';
+import { account as signedIn } from '@/services/account';
 import { disableNativeNotificationDevice } from '@/services/notificationService';
-import { supabase } from '@/services/supabase';
 
 const SECTIONS: { href: Href; match: string; label: string; icon: IconName; tab: Exclude<ArtistTab, null> }[] = [
   { href: '/', match: '/', label: 'Submissions', icon: 'document-outline', tab: 'submissions' },
@@ -47,7 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     } catch (error) {
       console.warn('Unable to detach this device from Coptic Vine Artists notifications before sign-out:', error);
     }
-    await supabase.auth.signOut();
+    await signedIn.signOut();
   };
 
   const switcher = accounts.map((workspace) => {

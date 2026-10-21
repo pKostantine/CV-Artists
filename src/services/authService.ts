@@ -2,10 +2,11 @@ import { Platform } from 'react-native';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { supabase, supabaseKey, supabaseUrl } from '@/services/supabase';
+import { cvApiAuth } from '@/services/userApi';
 
 WebBrowser.maybeCompleteAuthSession();
 
-/** Where Google sends the browser back to after consent. Must be in Supabase's Redirect URLs allow list. */
+/** Where Google sends the browser back to after consent. Must be in Supabase's Redirect URLs allow list (cv-api's TRUSTED_ORIGINS). */
 export function oauthRedirectUrl(): string {
   if (Platform.OS === 'web') {
     // Return to the page the creator started from (e.g. /lyrics), without any stale auth params.
@@ -23,6 +24,11 @@ export function oauthRedirectUrl(): string {
  * description when the provider reported an error.
  */
 export async function completeOAuthFromUrl(url: string): Promise<boolean> {
+  if (cvApiAuth) {
+    // cv-api's link back holds the session itself (Better Auth's Expo plugin).
+    await cvApiAuth.applyCallback(url);
+    return Boolean(await cvApiAuth.getSession());
+  }
   const parsed = new URL(url);
   const hash = new URLSearchParams(parsed.hash.replace(/^#/, ''));
   const error = parsed.searchParams.get('error_description') || hash.get('error_description');
@@ -54,6 +60,11 @@ async function assertGoogleEnabled(): Promise<void> {
 }
 
 export async function signInWithGoogle(): Promise<void> {
+  if (cvApiAuth) {
+    // The web goes to Google and back with the cookie; a phone, through cv-api's proxy, with the session in the link.
+    await cvApiAuth.signInWithGoogle(oauthRedirectUrl());
+    return;
+  }
   await assertGoogleEnabled();
   const redirectTo = oauthRedirectUrl();
 
@@ -81,7 +92,8 @@ export function describeAuthError(error: unknown): string {
   if (/provider is not enabled|Unsupported provider/i.test(message)) {
     return 'Google sign-in is not switched on for Coptic Vine Artists yet. Use your email and password for now.';
   }
-  if (/Invalid login credentials/i.test(message)) return 'That email and password do not match a Coptic Vine Artists account.';
-  if (/Email not confirmed/i.test(message)) return 'Confirm your email address first. Check your inbox for the link.';
+  // Supabase's words, then cv-api's (Better Auth's).
+  if (/Invalid login credentials|Invalid email or password/i.test(message)) return 'That email and password do not match a Coptic Vine Artists account.';
+  if (/Email not confirmed|Email not verified/i.test(message)) return 'Confirm your email address first. Check your inbox for the link.';
   return message;
 }

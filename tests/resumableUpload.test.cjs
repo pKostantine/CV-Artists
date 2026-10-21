@@ -113,6 +113,7 @@ function harness({ failPart = null, missingUpload = false } = {}) {
   const { creatorService } = load('src/services/creatorService.ts', {
     'react-native': { Platform: { OS: 'web' } },
     'expo-file-system': { File: class {} },
+    '@/services/account': { uploadSessions: {} },
     '@/services/supabase': { supabase: {} },
     '@/utils/uploadAuth': { createUploadAuth: () => uploadAuth },
     '@/utils/titles': { preferredLocalizedTitle: (titles) => titles?.en || '', releaseTypeForTrackCount: () => 'single' },

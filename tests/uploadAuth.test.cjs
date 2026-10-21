@@ -86,7 +86,9 @@ test('a failed token refresh is reported instead of retrying uploads with an exp
 
 test('large video uploads use refreshed JWTs for every chunk and upload control request', () => {
   const service = fs.readFileSync('src/services/creatorService.ts', 'utf8');
-  assert.match(service, /const uploadAuth = createUploadAuth\(supabase\.auth\)/);
+  assert.match(service, /const uploadAuth = createUploadAuth\(uploadSessions\)/);
+  // Supabase Auth itself while it is the source (src/services/account.ts).
+  assert.match(fs.readFileSync('src/services/account.ts', 'utf8'), /export const uploadSessions: UploadAuthProvider = cvApiAuth \? cvApiUploadSessions\(cvApiAuth\) : supabase\.auth;/);
   assert.match(service, /const send = async \(access: string\)/);
   assert.match(service, /if \(status !== 401\) throw error;/);
   assert.match(service, /return send\(await uploadAuth\.getToken\(true\)\)/);

@@ -5,7 +5,7 @@ import { VineDivider } from '@/components/Ornaments';
 import { Banner, Button, Card, Eyebrow, Field, Segmented } from '@/components/ui';
 import { COLORS, RADII, SPACING, TYPOGRAPHY } from '@/constants/theme';
 import { describeAuthError, signInWithGoogle } from '@/services/authService';
-import { supabase } from '@/services/supabase';
+import { account } from '@/services/account';
 
 type AuthMode = 'signIn' | 'signUp';
 
@@ -31,8 +31,11 @@ export function SignInScreen({ initialError }: { initialError?: string }) {
     setBusy('email');
     setError('');
     setNotice('');
-    const { error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    if (authError) setError(describeAuthError(authError));
+    try {
+      await account.signInWithEmail(email.trim(), password);
+    } catch (authError) {
+      setError(describeAuthError(authError));
+    }
     setBusy('');
   }
 
@@ -44,22 +47,16 @@ export function SignInScreen({ initialError }: { initialError?: string }) {
     if (password !== confirmPassword) return setError('The passwords do not match.');
 
     setBusy('email');
-    const { data, error: authError } = await supabase.auth.signUp({
-      email: email.trim(),
-      password,
-      options: {
-        data: { full_name: displayName.trim() },
-        emailRedirectTo: Platform.OS === 'web' ? window.location.origin : undefined,
-      },
-    });
-
-    if (authError) {
+    try {
+      const { confirmationRequired } = await account.signUpWithEmail(email.trim(), password, displayName.trim());
+      if (confirmationRequired) {
+        setNotice('Account created. Check your email to confirm it, then come back and sign in.');
+        setMode('signIn');
+        setPassword('');
+        setConfirmPassword('');
+      }
+    } catch (authError) {
       setError(describeAuthError(authError));
-    } else if (!data.session) {
-      setNotice('Account created. Check your email to confirm it, then come back and sign in.');
-      setMode('signIn');
-      setPassword('');
-      setConfirmPassword('');
     }
     setBusy('');
   }

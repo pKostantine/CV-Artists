@@ -2,11 +2,11 @@ import { router, type Href } from 'expo-router';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
+import { account } from '@/services/account';
 import {
   installNativeNotificationRuntime,
   syncNativeNotificationDevice,
 } from '@/services/notificationService';
-import { supabase } from '@/services/supabase';
 
 export default function NotificationBootstrap() {
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function NotificationBootstrap() {
       console.warn('Unable to synchronize Coptic Vine notifications:', error);
     });
 
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    const unsubscribe = account.onChange((session) => {
       if (!session) return;
       void syncNativeNotificationDevice({ requestPermission: false }).catch((error) => {
         console.warn('Unable to synchronize Coptic Vine notifications after sign-in:', error);
@@ -41,7 +41,7 @@ export default function NotificationBootstrap() {
     return () => {
       active = false;
       removeRuntime();
-      data.subscription.unsubscribe();
+      unsubscribe();
     };
   }, []);
 

@@ -2,6 +2,7 @@ import Constants from 'expo-constants';
 import type { DevicePushToken, NotificationResponse } from 'expo-notifications';
 import { Platform } from 'react-native';
 
+import { account } from '@/services/account';
 import { supabase } from '@/services/supabase';
 
 export type NotificationPreferenceMap = Record<string, boolean>;
@@ -65,8 +66,7 @@ async function prepareNativeNotifications(requestPermission: boolean) {
 }
 
 async function registerExpoToken(expoPushToken: string) {
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError) throw userError;
+  const user = await account.getUser();
   if (!user) return 'signed_out' as const;
 
   const { error } = await supabase.rpc('register_notification_device', {
@@ -159,8 +159,7 @@ export async function installNativeNotificationRuntime(
 
 export async function loadNotificationPreferences(categories: string[]): Promise<NotificationPreferenceMap> {
   const result: NotificationPreferenceMap = Object.fromEntries(categories.map((category) => [category, true]));
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError) throw userError;
+  const user = await account.getUser();
   if (!user) return result;
 
   const { data, error } = await supabase
@@ -176,8 +175,7 @@ export async function loadNotificationPreferences(categories: string[]): Promise
 }
 
 export async function setNotificationPreference(category: string, enabled: boolean): Promise<void> {
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError) throw userError;
+  const user = await account.getUser();
   if (!user) throw new Error('Sign in to change notification preferences.');
 
   const { error } = await supabase.from('notification_preferences').upsert({
