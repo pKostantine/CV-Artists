@@ -8,18 +8,19 @@ import { createCvApiAuth, type CvApiAuth, type CvApiMessage } from '@/services/c
  * Where Coptic Vine Artists signs in and keeps its data (Phase 2 of Coptic
  * Vine's D1 migration, docs/d1/phase2-runbook.md in pKostantine/Coptic-Vine):
  *
- *   supabase    Supabase Auth and Supabase's REST API: the default until the
- *               cutover.
+ *   supabase    Supabase Auth and Supabase's REST API: the old copy, kept
+ *               30 days after the cutover (21 Oct 2026).
  *   cloudflare  cv-api at https://api.copticvine.ca: Better Auth for signing
  *               in (src/services/cvApiAuth.ts), and the same REST and
  *               function requests as Supabase's, on D1.
  *
- * EXPO_PUBLIC_USER_DATA_SOURCE=cloudflare switches over, and
+ * cv-api is the default since the cutover; EXPO_PUBLIC_USER_DATA_SOURCE=supabase
+ * switches back, and
  * EXPO_PUBLIC_USER_API_URL gives another address than https://api.copticvine.ca.
  */
 export type UserDataSource = 'supabase' | 'cloudflare';
 
-export const USER_DATA_SOURCE: UserDataSource = process.env.EXPO_PUBLIC_USER_DATA_SOURCE === 'cloudflare' ? 'cloudflare' : 'supabase';
+export const USER_DATA_SOURCE: UserDataSource = process.env.EXPO_PUBLIC_USER_DATA_SOURCE === 'supabase' ? 'supabase' : 'cloudflare';
 
 export const USER_API_URL = (process.env.EXPO_PUBLIC_USER_API_URL || 'https://api.copticvine.ca').replace(/\/+$/, '');
 
