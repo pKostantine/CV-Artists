@@ -8,18 +8,31 @@ import { api } from '@/services/api';
 export type NotificationPreferenceMap = Record<string, boolean>;
 export type NotificationSyncResult = 'registered' | 'permission_required' | 'signed_out' | 'unsupported' | 'unconfigured';
 
-// These keep their original chc names: the app key is checked by the
-// database, the push dispatcher sends to the 'chc-default' channel, and
-// renaming the storage key would re-register every device.
-const APP_KEY = 'chc_artists';
+// Coptic Vine's names: the app key cv-api and the database check, and the
+// channel the push dispatcher sends to. Before the rename they were chc
+// (chc_artists, 'chc-default'); cv-api still takes the old key from older builds.
+const APP_KEY = 'cv_artists';
 const PROVIDER = 'expo';
-const CHANNEL_ID = 'chc-default';
-const LAST_TOKEN_KEY = '@chc/notification-token/chc_artists';
+const CHANNEL_ID = 'cv-default';
+const LEGACY_CHANNEL_ID = 'chc-default';
+const LAST_TOKEN_KEY = '@cv/notification-token/cv_artists';
+const LEGACY_LAST_TOKEN_KEY = '@chc/notification-token/chc_artists';
 
 let handlerConfigured = false;
 
+/** localStorage, with the token an earlier build kept under the old name moved to the new first. */
 function storage() {
-  return typeof globalThis.localStorage === 'undefined' ? null : globalThis.localStorage;
+  const store = typeof globalThis.localStorage === 'undefined' ? null : globalThis.localStorage;
+  try {
+    const legacy = store?.getItem(LEGACY_LAST_TOKEN_KEY) ?? null;
+    if (store && legacy !== null) {
+      if (store.getItem(LAST_TOKEN_KEY) === null) store.setItem(LAST_TOKEN_KEY, legacy);
+      store.removeItem(LEGACY_LAST_TOKEN_KEY);
+    }
+  } catch {
+    // Storage that can't be read has nothing to move.
+  }
+  return store;
 }
 
 function projectId() {
@@ -48,6 +61,7 @@ async function prepareNativeNotifications(requestPermission: boolean) {
   }
 
   if (Platform.OS === 'android') {
+    await Notifications.deleteNotificationChannelAsync(LEGACY_CHANNEL_ID).catch(() => undefined);
     await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
       name: 'Coptic Vine Artists',
       importance: Notifications.AndroidImportance.MAX,
